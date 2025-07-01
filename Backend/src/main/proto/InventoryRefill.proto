@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.retail.smart.grpc.inventory";
+option java_outer_classname = "InventoryRefillProto";
+
+service InventoryRefill {
+  rpc StreamDeliveries(stream InventoryRequest) returns (InventoryResponse);
+}
+
+message InventoryRequest {
+  string productId = 1;
+  int32 quantityReceived = 2;
+  string deliveryTimestamp = 3;
+}
+
+message InventoryResponse {
+  string message = 1;
+  repeated RestockItem restockedItems = 2;
+}
+
+message RestockItem {
+  string productId = 1;
+  int32 currentQuantity = 2;
+  bool reorderTriggered = 3;
+}

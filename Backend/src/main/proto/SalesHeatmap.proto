@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.retail.smart.grpc.sales";
+option java_outer_classname = "SalesHeatmapProto";
+
+service SalesHeatmap {
+  rpc GetHeatmap(SalesRequest) returns (stream SalesAreaPerformance);
+}
+
+message SalesRequest {
+  string requestTime = 1;
+}
+
+message SalesAreaPerformance {
+  string areaCode = 1;
+  int32 totalSales = 2;
+  string suggestion = 3; // e.g. "Move product X to this area"
+}

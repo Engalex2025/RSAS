@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.retail.smart.grpc.security";
+option java_outer_classname = "SecurityMonitorProto";
+
+service SecurityMonitor {
+  rpc MonitorSuspects(stream SecurityEvent) returns (stream SecurityAlert);
+}
+
+message SecurityEvent {
+  string cameraId = 1;
+  string timestamp = 2;
+  string detectedBehavior = 3;
+}
+
+message SecurityAlert {
+  string alertLevel = 1;
+  string message = 2;
+  string location = 3;
+}
