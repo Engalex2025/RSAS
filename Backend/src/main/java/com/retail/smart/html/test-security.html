@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test SecurityMonitor API</title>
+</head>
+<body>
+  <h2>Send Security Events</h2>
+  <button onclick="sendSecurityEvents()">Send Events</button>
+
+  <pre id="output"></pre>
+
+  <script>
+    function sendSecurityEvents() {
+      const events = [
+        {
+          cameraId: "CAM123",
+          timestamp: "2025-07-09T13:00:02Z",
+          detectedBehavior: "intruder"
+        },
+        {
+          cameraId: "CAM456",
+          timestamp: "2025-07-09T13:05:00Z",
+          detectedBehavior: "loitering"
+        }
+      ];
+
+      fetch("http://localhost:8080/api/security/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(events)
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(error => {
+        document.getElementById("output").textContent = "Error: " + error;
+      });
+    }
+  </script>
+</body>
+</html>
