@@ -8,5 +8,6 @@ public class SmartRetailSystemApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SmartRetailSystemApplication.class, args);
+        System.out.println("SmartRetailSystemApplication started");
     }
 }

@@ -1,8 +1,5 @@
 package com.retail.smart.service;
 
-import com.retail.smart.dto.SalesHeatmapDTO;
-import com.retail.smart.dto.SalesHeatmapDTO.HeatmapEntry;
-import com.retail.smart.dto.SalesHeatmapDTO.RelocationSuggestionEntry;
 import com.retail.smart.grpc.sales.SalesAreaPerformance;
 import com.retail.smart.grpc.sales.SalesHeatmapGrpc;
 import com.retail.smart.grpc.sales.SalesRequest;
