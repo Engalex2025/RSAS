@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class AuthController {
     @PostConstruct
 public void init() {
-    System.out.println("🚀 AuthController initialized!");
+    System.out.println(" AuthController initialized!");
 }
 
 
@@ -41,9 +41,16 @@ public void init() {
     private UserRepository userRepository;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequestDTO request) {
-        System.out.println("=== REGISTER ENDPOINT ===");
+public ResponseEntity<String> register(@RequestBody RegisterRequestDTO request) {
+    System.out.println("=== REGISTER ENDPOINT ===");
+    
 
+    if (request == null) {
+        System.out.println(" RegisterRequestDTO is null (invalid JSON sent)");
+        return ResponseEntity.badRequest().body("Invalid JSON body received");
+    }
+
+    try {
         if (userRepository.existsByUsername(request.getUsername())) {
             System.out.println("Username already exists");
             return ResponseEntity.badRequest().body("Username already exists");
@@ -60,10 +67,18 @@ public void init() {
         user.setRole(role);
 
         userRepository.save(user);
-
         System.out.println("User saved: " + user.getUsername());
+
         return ResponseEntity.ok("User registered successfully");
+
+    } catch (Exception e) {
+        System.out.println(" ERROR DURING REGISTRATION: " + e.getMessage());
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
     }
+}
+
 
 
 

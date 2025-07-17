@@ -28,10 +28,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        if (request.getRequestURI().startsWith("/api/auth*")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+       String uri = request.getRequestURI();
+if (uri.startsWith("/api/auth") || uri.startsWith("/api/login") || uri.equals("/ping")) {
+    filterChain.doFilter(request, response);
+    return;
+}
+
 
         final String authHeader = request.getHeader("Authorization");
 
