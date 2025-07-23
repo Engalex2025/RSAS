@@ -1,7 +1,7 @@
 package com.retail.smart.service;
 
 import com.retail.smart.grpc.pricing.*;
-import com.retail.smart.model.Product;
+import com.retail.smart.entity.Product;
 import com.retail.smart.repository.ProductRepository;
 import io.grpc.stub.StreamObserver;
 import org.springframework.beans.factory.annotation.Autowired;

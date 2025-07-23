@@ -1,4 +1,4 @@
-package com.retail.smart.model;
+package com.retail.smart.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

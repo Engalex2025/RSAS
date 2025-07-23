@@ -1,12 +1,11 @@
-
 package com.retail.smart.service;
 
 import com.retail.smart.grpc.inventory.InventoryRefillGrpc;
 import com.retail.smart.grpc.inventory.InventoryRequest;
 import com.retail.smart.grpc.inventory.InventoryResponse;
 import com.retail.smart.grpc.inventory.RestockItem;
-import com.retail.smart.model.Product;
-import com.retail.smart.model.RestockLog;
+import com.retail.smart.entity.Product;
+import com.retail.smart.entity.RestockLog;
 import com.retail.smart.repository.ProductRepository;
 import com.retail.smart.repository.RestockLogRepository;
 import io.grpc.stub.StreamObserver;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 
 @Service
 public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRefillImplBase {
@@ -76,5 +74,22 @@ public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRef
                 responseObserver.onCompleted();
             }
         };
+    }
+
+    public void refillInventory(String productId, int quantity) {
+        Product product = productRepository.findById(productId).orElse(null);
+
+        if (product == null) {
+            throw new IllegalArgumentException("Product not found: " + productId);
+        }
+
+        product.setQuantity(product.getQuantity() + quantity);
+        productRepository.save(product);
+
+        RestockLog log = new RestockLog();
+        log.setProduct(product);
+        log.setQuantityAdded(quantity);
+        log.setTimestamp(LocalDateTime.now());
+        restockLogRepository.save(log);
     }
 }

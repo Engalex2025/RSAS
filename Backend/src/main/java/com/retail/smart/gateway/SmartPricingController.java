@@ -4,6 +4,7 @@ import com.retail.smart.dto.PriceUpdateDTO;
 import com.retail.smart.grpc.pricing.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,7 +32,7 @@ public class SmartPricingController {
     }
 
     @PostMapping("/price")
-    public PriceUpdateResponse updatePrice(@RequestBody PriceUpdateDTO dto) {
+    public PriceUpdateResponse updatePrice(@Valid @RequestBody PriceUpdateDTO dto) {
         PriceUpdateRequest request = PriceUpdateRequest.newBuilder()
                 .setProductId(dto.getProductId())
                 .setNewPrice(dto.getNewPrice())

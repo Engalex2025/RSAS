@@ -2,7 +2,7 @@ package com.retail.smart.gateway;
 
 import com.retail.smart.dto.AuthRequest;
 import com.retail.smart.dto.RegisterRequestDTO;
-import com.retail.smart.model.User;
+import com.retail.smart.entity.User;
 import com.retail.smart.repository.UserRepository;
 import com.retail.smart.security.AuthenticationJwt;
 import com.retail.smart.service.UserDetailsServiceImpl;

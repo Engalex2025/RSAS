@@ -1,6 +1,6 @@
 package com.retail.smart.service;
 
-import com.retail.smart.model.User;
+import com.retail.smart.entity.User;
 import com.retail.smart.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.*;

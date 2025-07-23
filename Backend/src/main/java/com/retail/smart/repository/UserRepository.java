@@ -1,6 +1,6 @@
 package com.retail.smart.repository;
 
-import com.retail.smart.model.User;
+import com.retail.smart.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
