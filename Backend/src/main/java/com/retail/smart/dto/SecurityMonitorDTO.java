@@ -1,5 +1,6 @@
 package com.retail.smart.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 
 public class SecurityMonitorDTO {
@@ -32,8 +33,14 @@ public class SecurityMonitorDTO {
     }
 
     public static class SecurityEventEntry {
+
+        @NotBlank(message = "Camera ID is required")
         private String cameraId;
+
+        @NotBlank(message = "Timestamp is required")
         private String timestamp;
+
+        @NotBlank(message = "Detected behavior is required")
         private String detectedBehavior;
 
         public SecurityEventEntry() {
@@ -71,8 +78,14 @@ public class SecurityMonitorDTO {
     }
 
     public static class SecurityAlertEntry {
+
+        @NotBlank(message = "Alert level is required")
         private String alertLevel;
+
+        @NotBlank(message = "Message is required")
         private String message;
+
+        @NotBlank(message = "Location is required")
         private String location;
 
         public SecurityAlertEntry() {

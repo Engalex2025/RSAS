@@ -8,6 +8,7 @@ import com.retail.smart.grpc.security.SecurityMonitorGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class SecurityMonitorController {
 
     @PostMapping("/analyze")
-    public List<SecurityAlertEntry> analyzeEvents(@RequestBody List<SecurityEventEntry> events) throws InterruptedException {
+    public List<SecurityAlertEntry> analyzeEvents(@Valid @RequestBody List<SecurityEventEntry> events) throws InterruptedException {
 
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 9090)
                 .usePlaintext()

@@ -3,33 +3,42 @@ package com.retail.smart.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.List;
 
 @Component
 public class AuthenticationJwt {
 
-    private final String secretKey = "mySecretKeyRSAS"; // pode ter menos de 32 chars
-    private final long expirationTime = 1000 * 60 * 60; // 1 hora
+    // Secure key (must be >= 512 bits for HS512)
+    private SecretKey secretKey;
+
+    private static final long EXPIRATION_TIME_MS = 60 * 60 * 1000; // 1 hour
+    private static final String ROLES_CLAIM = "roles";
+
+    // Generate a safe HS512-compatible key at runtime
+    @PostConstruct
+    public void init() {
+        secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    }
 
     public String generateToken(String username, List<String> roles) {
         return Jwts.builder()
                 .setSubject(username)
-                .claim("roles", roles)
+                .claim(ROLES_CLAIM, roles)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(SignatureAlgorithm.HS512, secretKey)
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_MS))
+                .signWith(secretKey)
                 .compact();
     }
 
     public boolean validateToken(String token, String username) {
         try {
-            Claims claims = Jwts.parser()
-                    .setSigningKey(secretKey)
-                    .parseClaimsJws(token)
-                    .getBody();
+            Claims claims = getClaimsFromToken(token);
             return claims.getSubject().equals(username) && !claims.getExpiration().before(new Date());
         } catch (Exception e) {
             return false;
@@ -37,18 +46,23 @@ public class AuthenticationJwt {
     }
 
     public String getUsernameFromToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(secretKey)
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        return getClaimsFromToken(token).getSubject();
     }
 
     public List<String> getRolesFromToken(String token) {
-        return (List<String>) Jwts.parser()
+        return getClaimsFromToken(token).get(ROLES_CLAIM, List.class);
+    }
+
+    private Claims getClaimsFromToken(String token) {
+        return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
+                .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .get("roles");
+                .getBody();
+    }
+
+    // Setter for test injection (allows fixed secret key during unit tests)
+    void setSecretKey(SecretKey key) {
+        this.secretKey = key;
     }
 }

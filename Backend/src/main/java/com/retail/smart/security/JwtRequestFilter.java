@@ -19,8 +19,26 @@ import java.util.stream.Collectors;
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
+    private static final String AUTH_HEADER_PREFIX = "Bearer ";
+
     @Autowired
     private AuthenticationJwt jwtUtil;
+
+    // Constructor for test injection
+    // Allows injecting a mock AuthenticationJwt in unit tests
+    JwtRequestFilter(AuthenticationJwt jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
+
+    // Default constructor required for Spring Boot to autowire this bean
+    public JwtRequestFilter() {
+    }
+
+    // Package-private setter for test purposes
+    // Used only in unit tests to set a mock implementation
+    void setJwtUtil(AuthenticationJwt jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -28,21 +46,20 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-       String uri = request.getRequestURI();
-if (uri.startsWith("/api/auth") || uri.startsWith("/api/login") || uri.equals("/ping")) {
-    filterChain.doFilter(request, response);
-    return;
-}
-
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/api/auth") || uri.startsWith("/api/login") || uri.equals("/ping")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         final String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith(AUTH_HEADER_PREFIX)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
-        String token = authHeader.substring(7);
+        String token = authHeader.substring(AUTH_HEADER_PREFIX.length());
         String username = jwtUtil.getUsernameFromToken(token);
 
         if (!jwtUtil.validateToken(token, username)) {
@@ -51,7 +68,9 @@ if (uri.startsWith("/api/auth") || uri.startsWith("/api/login") || uri.equals("/
         }
 
         List<String> roles = jwtUtil.getRolesFromToken(token);
-        var authorities = roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        var authorities = roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
 
         var authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
