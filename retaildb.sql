@@ -1,4 +1,3 @@
-
 CREATE DATABASE IF NOT EXISTS retaildb;
 USE retaildb;
 
@@ -19,7 +18,6 @@ CREATE TABLE IF NOT EXISTS products (
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-
 CREATE TABLE IF NOT EXISTS restock_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     product_id VARCHAR(50),
@@ -27,7 +25,6 @@ CREATE TABLE IF NOT EXISTS restock_logs (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
-
 
 CREATE TABLE IF NOT EXISTS security_events (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,6 +40,8 @@ CREATE TABLE IF NOT EXISTS sales_data (
     id INT AUTO_INCREMENT PRIMARY KEY,
     area_code VARCHAR(20),
     product_id VARCHAR(50),
+    product_name VARCHAR(100),
+    category VARCHAR(100),
     quantity_sold INT,
     sale_time DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -57,28 +56,30 @@ CREATE TABLE IF NOT EXISTS price_updates (
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
-INSERT INTO users (username, password, role) VALUES (
-  'alexa',
-  '$2a$10$0vvYl7aZyzAaTWNoz5.14OQK1yH6sDMP7S5ZoMTWJfljwH4d8/I0e',
-  'ADMIN'
+CREATE TABLE IF NOT EXISTS relocation_suggestions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id VARCHAR(50),
+    product_name VARCHAR(100),
+    category VARCHAR(100),
+    from_area VARCHAR(20),
+    to_area VARCHAR(20),
+    reason TEXT,
+    suggestion_time DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-UPDATE users
-SET password = '$2a$10$0vvYl7aZyzAaTWNoz5.14OQK1yH6sDMP7S5ZoMTWJfljwH4d8/I0e',
-    role = 'ADMIN'
-WHERE username = 'alexa';
-SELECT * FROM users;
-DELETE FROM users WHERE username = 'admin';
-SELECT * FROM users;
-DELETE FROM users WHERE username = 'alexa';
+
+INSERT INTO sales_data (area_code, product_id, product_name, category, quantity_sold)
+VALUES
+('A101', 'R001', 'SoapX', 'Hygiene', 120),
+('B202', 'R002', 'DetergentMax', 'Cleaning', 80),
+('C303', 'R003', 'YogurtZ', 'Dairy', 30),
+('D404', 'R004', 'ToothpasteZ', 'Hygiene', 55),
+('E505', 'R005', 'FloorShine', 'Cleaning', 90),
+('A101', 'R006', 'MilkY', 'Dairy', 15);
 
 INSERT INTO users (username, password, role)
-VALUES (
-  'alexa',
-  '$2a$10$qscZFRnqKj31nZgQ9vP7v.Q9vhWRhElY3Y2eRQHmhGbRGFb7LZouK',
-  'ADMIN'
-);
+VALUES ('alexa', '$2a$10$qscZFRnqKj31nZgQ9vP7v.Q9vhWRhElY3Y2eRQHmhGbRGFb7LZouK', 'ADMIN')
+ON DUPLICATE KEY UPDATE password = VALUES(password), role = 'ADMIN';
 
-
-
-
-
+INSERT INTO users (username, password, role)
+VALUES ('lucas', '$2a$10$K8TQpPXTxlz8eqtTMB9qSeNct14SmZr6aaB/9K0KwDw9Fb3pK10q2', 'ROLE_ADMIN')
+ON DUPLICATE KEY UPDATE password = VALUES(password), role = 'ROLE_ADMIN';

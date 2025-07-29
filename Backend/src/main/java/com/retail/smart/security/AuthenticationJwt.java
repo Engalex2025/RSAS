@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -14,17 +13,12 @@ import java.util.List;
 @Component
 public class AuthenticationJwt {
 
-    // Secure key (must be >= 512 bits for HS512)
-    private SecretKey secretKey;
+    // Fixed secure key (≥ 512 bits)
+    private static final String SECRET = "zNs93vPq2Whd7KxJu84GdPt3LzqTAxEojFnvPqZrQhVkYdRpZkTfGhMqNjRgSmUp";
+    private final SecretKey secretKey = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     private static final long EXPIRATION_TIME_MS = 60 * 60 * 1000; // 1 hour
     private static final String ROLES_CLAIM = "roles";
-
-    // Generate a safe HS512-compatible key at runtime
-    @PostConstruct
-    public void init() {
-        secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-    }
 
     public String generateToken(String username, List<String> roles) {
         return Jwts.builder()
@@ -32,7 +26,7 @@ public class AuthenticationJwt {
                 .claim(ROLES_CLAIM, roles)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_MS))
-                .signWith(secretKey)
+                .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
@@ -61,8 +55,8 @@ public class AuthenticationJwt {
                 .getBody();
     }
 
-    // Setter for test injection (allows fixed secret key during unit tests)
+    // Optional setter for test injection
     void setSecretKey(SecretKey key) {
-        this.secretKey = key;
+        // Not needed in production
     }
 }

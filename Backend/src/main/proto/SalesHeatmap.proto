@@ -10,10 +10,12 @@ service SalesHeatmap {
 
 message SalesRequest {
   string requestTime = 1;
+  int32 week = 2; // 0 = this week, 1 = last week, 2 = two weeks ago, etc.
 }
 
 message SalesAreaPerformance {
   string areaCode = 1;
   int32 totalSales = 2;
-  string suggestion = 3; // e.g. "Move product X to this area"
+  repeated string topCategories = 3;
+  string suggestion = 4;
 }
