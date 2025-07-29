@@ -3,12 +3,10 @@ package com.retail.smart.gateway;
 import com.retail.smart.dto.SalesHeatmapDTO;
 import com.retail.smart.dto.SalesHeatmapDTO.HeatmapEntry;
 import com.retail.smart.dto.SalesHeatmapDTO.RelocationSuggestionEntry;
-import com.retail.smart.entity.Category;
 import com.retail.smart.entity.RelocationSuggestion;
 import com.retail.smart.grpc.sales.SalesHeatmapGrpc;
 import com.retail.smart.grpc.sales.SalesRequest;
 import com.retail.smart.grpc.sales.SalesAreaPerformance;
-import com.retail.smart.repository.CategoryRepository;
 import com.retail.smart.repository.RelocationSuggestionRepository;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -17,19 +15,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+
+
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
 
 @RestController
 public class SalesHeatmapController {
 
-    private final CategoryRepository categoryRepository;
     private final RelocationSuggestionRepository relocationSuggestionRepository;
 
-    public SalesHeatmapController(CategoryRepository categoryRepository,
-                                  RelocationSuggestionRepository relocationSuggestionRepository) {
-        this.categoryRepository = categoryRepository;
+    public SalesHeatmapController(RelocationSuggestionRepository relocationSuggestionRepository) {
         this.relocationSuggestionRepository = relocationSuggestionRepository;
     }
 
@@ -49,15 +45,31 @@ public class SalesHeatmapController {
         List<RelocationSuggestionEntry> suggestions = new ArrayList<>();
         CountDownLatch latch = new CountDownLatch(1);
 
+        Map<String, Integer> salesMap = new HashMap<>();
+        Map<String, Integer> previousSalesMap = new HashMap<>();
+
+        // Load previous week's sales
+        ManagedChannel previewChannel = ManagedChannelBuilder.forAddress("localhost", 9090)
+                .usePlaintext()
+                .build();
+        SalesHeatmapGrpc.SalesHeatmapBlockingStub previewStub = SalesHeatmapGrpc.newBlockingStub(previewChannel);
+
+        SalesRequest previousRequest = SalesRequest.newBuilder()
+                .setRequestTime("WEEK_" + (week - 1))
+                .build();
+
+        previewStub.getHeatmap(previousRequest).forEachRemaining(area -> {
+            previousSalesMap.put(area.getAreaCode(), area.getTotalSales());
+        });
+        previewChannel.shutdown();
+
         stub.getHeatmap(SalesRequest.newBuilder()
                 .setRequestTime("WEEK_" + week)
                 .build(), new StreamObserver<>() {
 
-            final Map<String, Integer> salesMap = new HashMap<>();
-
             @Override
             public void onNext(SalesAreaPerformance value) {
-                List<String> categories = getTopCategories(value.getAreaCode());
+                List<String> categories = value.getTopCategoriesList();
                 salesMap.put(value.getAreaCode(), value.getTotalSales());
 
                 heatmap.add(new HeatmapEntry(
@@ -77,23 +89,39 @@ public class SalesHeatmapController {
                     }
 
                     if (chosenCategory != null) {
-                        String toArea = salesMap.entrySet().stream()
-                                .filter(e -> !e.getKey().equals(value.getAreaCode()))
-                                .max(Map.Entry.comparingByValue())
-                                .map(Map.Entry::getKey)
-                                .orElse("A101");
+                        String fromArea = value.getAreaCode();
+                        int fromSales = value.getTotalSales();
+                        int fromPrevious = previousSalesMap.getOrDefault(fromArea, fromSales);
+                        int dropPercent = getPercentageDrop(fromPrevious, fromSales);
 
-                        if (!toArea.equals(value.getAreaCode())) {
+                        Optional<Map.Entry<String, Integer>> toAreaEntry = salesMap.entrySet().stream()
+                                .filter(e -> {
+                                    String area = e.getKey();
+                                    int current = e.getValue();
+                                    int previous = previousSalesMap.getOrDefault(area, current);
+                                    return !area.equals(fromArea) && current >= previous;
+                                })
+                                .max(Map.Entry.comparingByValue());
+
+                        if (toAreaEntry.isPresent()) {
+                            String toArea = toAreaEntry.get().getKey();
+                            int toCurrent = toAreaEntry.get().getValue();
+                            int toPrevious = previousSalesMap.getOrDefault(toArea, toCurrent);
+                            int risePercent = getPercentageRise(toPrevious, toCurrent);
+
                             String productId = "R" + (3000 + new Random().nextInt(999));
                             String productName = getProductNameByCategory(chosenCategory);
-                            String reason = "Low sales in " + value.getAreaCode() +
-                                    " and high demand in " + toArea + " for category " + chosenCategory;
+
+                            String reason = String.format(
+                                    "Sales of %s products in %s dropped %d%% compared to previous week. %s had a %d%% rise. Suggested move to rebalance demand.",
+                                    chosenCategory, fromArea, dropPercent, toArea, risePercent
+                            );
 
                             suggestions.add(new RelocationSuggestionEntry(
                                     productId,
                                     productName,
                                     chosenCategory,
-                                    value.getAreaCode(),
+                                    fromArea,
                                     toArea,
                                     reason
                             ));
@@ -102,9 +130,10 @@ public class SalesHeatmapController {
                                     productId,
                                     productName,
                                     chosenCategory,
-                                    value.getAreaCode(),
+                                    fromArea,
                                     toArea,
-                                    reason
+                                    reason,
+                                    week
                             ));
                         }
                     }
@@ -128,17 +157,6 @@ public class SalesHeatmapController {
         return new SalesHeatmapDTO(heatmap, suggestions);
     }
 
-    private List<String> getTopCategories(String areaCode) {
-        List<Category> allCategories = categoryRepository.findAll();
-        if (allCategories.isEmpty()) {
-            return List.of("general");
-        }
-        return allCategories.stream()
-                .map(Category::getName)
-                .limit(2)
-                .collect(Collectors.toList());
-    }
-
     private String getProductNameByCategory(String category) {
         return switch (category.toLowerCase()) {
             case "cleaning" -> "Pine Disinfectant";
@@ -149,5 +167,15 @@ public class SalesHeatmapController {
             case "bakery" -> "Whole Wheat Bread";
             default -> "Generic Product";
         };
+    }
+
+    private int getPercentageDrop(int previous, int current) {
+        if (previous == 0) return 100;
+        return (int) Math.round(((double) (previous - current) / previous) * 100);
+    }
+
+    private int getPercentageRise(int previous, int current) {
+        if (previous == 0) return 100;
+        return (int) Math.round(((double) (current - previous) / previous) * 100);
     }
 }

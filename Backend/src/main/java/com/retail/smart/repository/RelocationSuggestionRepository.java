@@ -4,7 +4,9 @@ import com.retail.smart.entity.RelocationSuggestion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface RelocationSuggestionRepository extends JpaRepository<RelocationSuggestion, Long> {
-    // You can add custom queries here later if needed
+    List<RelocationSuggestion> findByWeek(int week);
 }
