@@ -1,124 +1,63 @@
 package com.retail.smart.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import java.util.List;
+import java.time.LocalDateTime;
 
 public class SecurityMonitorDTO {
 
-    private List<SecurityEventEntry> events;
-    private List<SecurityAlertEntry> alerts;
+    private Long id;
+    private String area;
+    private String eventType;
+    private String notes;
+    private LocalDateTime timestamp;
 
     public SecurityMonitorDTO() {
     }
 
-    public SecurityMonitorDTO(List<SecurityEventEntry> events, List<SecurityAlertEntry> alerts) {
-        this.events = events;
-        this.alerts = alerts;
+    public SecurityMonitorDTO(Long id, String area, String eventType, String notes, LocalDateTime timestamp) {
+        this.id = id;
+        this.area = area;
+        this.eventType = eventType;
+        this.notes = notes;
+        this.timestamp = timestamp;
     }
 
-    public List<SecurityEventEntry> getEvents() {
-        return events;
+    public Long getId() {
+        return id;
     }
 
-    public void setEvents(List<SecurityEventEntry> events) {
-        this.events = events;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public List<SecurityAlertEntry> getAlerts() {
-        return alerts;
+    public String getArea() {
+        return area;
     }
 
-    public void setAlerts(List<SecurityAlertEntry> alerts) {
-        this.alerts = alerts;
+    public void setArea(String area) {
+        this.area = area;
     }
 
-    public static class SecurityEventEntry {
-
-        @NotBlank(message = "Camera ID is required")
-        private String cameraId;
-
-        @NotBlank(message = "Timestamp is required")
-        private String timestamp;
-
-        @NotBlank(message = "Detected behavior is required")
-        private String detectedBehavior;
-
-        public SecurityEventEntry() {
-        }
-
-        public SecurityEventEntry(String cameraId, String timestamp, String detectedBehavior) {
-            this.cameraId = cameraId;
-            this.timestamp = timestamp;
-            this.detectedBehavior = detectedBehavior;
-        }
-
-        public String getCameraId() {
-            return cameraId;
-        }
-
-        public void setCameraId(String cameraId) {
-            this.cameraId = cameraId;
-        }
-
-        public String getTimestamp() {
-            return timestamp;
-        }
-
-        public void setTimestamp(String timestamp) {
-            this.timestamp = timestamp;
-        }
-
-        public String getDetectedBehavior() {
-            return detectedBehavior;
-        }
-
-        public void setDetectedBehavior(String detectedBehavior) {
-            this.detectedBehavior = detectedBehavior;
-        }
+    public String getEventType() {
+        return eventType;
     }
 
-    public static class SecurityAlertEntry {
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
+    }
 
-        @NotBlank(message = "Alert level is required")
-        private String alertLevel;
+    public String getNotes() {
+        return notes;
+    }
 
-        @NotBlank(message = "Message is required")
-        private String message;
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
 
-        @NotBlank(message = "Location is required")
-        private String location;
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
 
-        public SecurityAlertEntry() {
-        }
-
-        public SecurityAlertEntry(String alertLevel, String message, String location) {
-            this.alertLevel = alertLevel;
-            this.message = message;
-            this.location = location;
-        }
-
-        public String getAlertLevel() {
-            return alertLevel;
-        }
-
-        public void setAlertLevel(String alertLevel) {
-            this.alertLevel = alertLevel;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-
-        public String getLocation() {
-            return location;
-        }
-
-        public void setLocation(String location) {
-            this.location = location;
-        }
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
     }
 }

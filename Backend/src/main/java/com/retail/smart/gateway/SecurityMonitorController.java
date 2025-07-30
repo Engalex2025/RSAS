@@ -1,71 +1,56 @@
 package com.retail.smart.gateway;
 
-import com.retail.smart.dto.SecurityMonitorDTO.SecurityEventEntry;
-import com.retail.smart.dto.SecurityMonitorDTO.SecurityAlertEntry;
-import com.retail.smart.grpc.security.SecurityAlert;
-import com.retail.smart.grpc.security.SecurityEvent;
-import com.retail.smart.grpc.security.SecurityMonitorGrpc;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.stub.StreamObserver;
-import jakarta.validation.Valid;
+import com.retail.smart.dto.SecurityAlertDTO;
+import com.retail.smart.dto.SecurityMonitorDTO;
+import com.retail.smart.dto.SecuritySummaryDTO;
+import com.retail.smart.service.SecurityMonitorServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/security")
 public class SecurityMonitorController {
 
-    @PostMapping("/analyze")
-    public List<SecurityAlertEntry> analyzeEvents(@Valid @RequestBody List<SecurityEventEntry> events) throws InterruptedException {
+    @Autowired
+    private SecurityMonitorServiceImpl monitorService;
 
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 9090)
-                .usePlaintext()
-                .build();
+    @GetMapping("/alerts")
+    public List<SecurityAlertDTO> getAllAlerts() {
+        return monitorService.getAllAlerts();
+    }
 
-        SecurityMonitorGrpc.SecurityMonitorStub stub = SecurityMonitorGrpc.newStub(channel);
+    @GetMapping("/alerts/filter")
+    public List<SecurityAlertDTO> filterAlerts(
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String location) {
+        return monitorService.getFilteredAlerts(level, location);
+    }
 
-        List<SecurityAlertEntry> alertResults = new ArrayList<>();
-        CountDownLatch latch = new CountDownLatch(1);
+    @GetMapping("/events")
+    public List<SecurityMonitorDTO> getAllEvents() {
+        return monitorService.getAllEvents(); 
+    }
 
-        StreamObserver<SecurityEvent> requestObserver = stub.monitorSuspects(new StreamObserver<>() {
-            @Override
-            public void onNext(SecurityAlert value) {
-                alertResults.add(new SecurityAlertEntry(
-                        value.getAlertLevel(),
-                        value.getMessage(),
-                        value.getLocation()
-                ));
-            }
+    @GetMapping("/alerts/levels")
+    public Map<String, Long> getAlertCountsByLevel() {
+        return monitorService.getAlertCountsByLevel();
+    }
 
-            @Override
-            public void onError(Throwable t) {
-                latch.countDown();
-            }
+    @GetMapping("/alerts/top-locations")
+    public List<String> getTopLocations() {
+        return monitorService.getTopLocations();
+    }
 
-            @Override
-            public void onCompleted() {
-                latch.countDown();
-            }
-        });
+    @GetMapping("/alerts/average-per-day")
+    public double getAverageAlertsPerDay() {
+        return monitorService.getAverageAlertsPerDay();
+    }
 
-        for (SecurityEventEntry eventDTO : events) {
-            SecurityEvent event = SecurityEvent.newBuilder()
-                    .setCameraId(eventDTO.getCameraId())
-                    .setTimestamp(eventDTO.getTimestamp())
-                    .setDetectedBehavior(eventDTO.getDetectedBehavior())
-                    .build();
-            requestObserver.onNext(event);
-        }
-
-        requestObserver.onCompleted();
-        latch.await(3, TimeUnit.SECONDS);
-        channel.shutdown();
-
-        return alertResults;
+    @GetMapping("/alerts/summary")
+    public SecuritySummaryDTO getSecuritySummary() {
+        return monitorService.getSecuritySummary();
     }
 }

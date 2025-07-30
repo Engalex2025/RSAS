@@ -17,7 +17,7 @@ public class AuthenticationJwt {
     private static final String SECRET = "zNs93vPq2Whd7KxJu84GdPt3LzqTAxEojFnvPqZrQhVkYdRpZkTfGhMqNjRgSmUp";
     private final SecretKey secretKey = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    private static final long EXPIRATION_TIME_MS = 60 * 60 * 1000; // 1 hour
+    private static final long EXPIRATION_TIME_MS = 24 * 60 * 60 * 1000; // 24 hours
     private static final String ROLES_CLAIM = "roles";
 
     public String generateToken(String username, List<String> roles) {

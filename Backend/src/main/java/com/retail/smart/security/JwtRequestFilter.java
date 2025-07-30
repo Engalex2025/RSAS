@@ -24,18 +24,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private AuthenticationJwt jwtUtil;
 
-    // Constructor for test injection
-    // Allows injecting a mock AuthenticationJwt in unit tests
     JwtRequestFilter(AuthenticationJwt jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
 
-    // Default constructor required for Spring Boot to autowire this bean
     public JwtRequestFilter() {
     }
 
-    // Package-private setter for test purposes
-    // Used only in unit tests to set a mock implementation
     void setJwtUtil(AuthenticationJwt jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
@@ -47,7 +42,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String uri = request.getRequestURI();
-        if (uri.startsWith("/api/auth") || uri.startsWith("/api/login") || uri.equals("/ping")) {
+        if (uri.startsWith("/api/auth") || uri.equals("/ping")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -60,20 +55,28 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(AUTH_HEADER_PREFIX.length());
-        String username = jwtUtil.getUsernameFromToken(token);
+        String username;
 
-        if (!jwtUtil.validateToken(token, username)) {
+        try {
+            username = jwtUtil.getUsernameFromToken(token);
+
+            if (!jwtUtil.validateToken(token, username)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
+            List<String> roles = jwtUtil.getRolesFromToken(token);
+            var authorities = roles.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
+
+            var authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-
-        List<String> roles = jwtUtil.getRolesFromToken(token);
-        var authorities = roles.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
-
-        var authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         filterChain.doFilter(request, response);
     }
