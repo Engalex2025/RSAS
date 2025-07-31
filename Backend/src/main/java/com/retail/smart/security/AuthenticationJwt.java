@@ -47,13 +47,14 @@ public class AuthenticationJwt {
         return getClaimsFromToken(token).get(ROLES_CLAIM, List.class);
     }
 
-    private Claims getClaimsFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-    }
+    public Claims getClaimsFromToken(String token) {
+    return Jwts.parserBuilder()
+            .setSigningKey(secretKey)
+            .build()
+            .parseClaimsJws(token)
+            .getBody();
+}
+
 
     // Optional setter for test injection
     void setSecretKey(SecretKey key) {

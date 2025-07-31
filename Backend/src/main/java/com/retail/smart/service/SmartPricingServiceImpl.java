@@ -7,6 +7,7 @@ import io.grpc.stub.StreamObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Random;
 
 @Service
@@ -27,22 +28,34 @@ public class SmartPricingServiceImpl extends SmartPricingGrpc.SmartPricingImplBa
             return;
         }
 
-        double originalPrice = product.getPrice();
-        double adjustedPrice;
+        BigDecimal originalPrice = product.getPrice();
+        BigDecimal adjustedPrice;
         String reason;
 
         int adjustmentType = random.nextInt(4);
         switch (adjustmentType) {
-            case 0 -> { adjustedPrice = originalPrice * 0.9; reason = "10% discount"; }
-            case 1 -> { adjustedPrice = originalPrice * 0.8; reason = "20% discount"; }
-            case 2 -> { adjustedPrice = originalPrice * 1.1; reason = "10% increase"; }
-            default -> { adjustedPrice = originalPrice * 1.2; reason = "20% increase"; }
+            case 0 -> {
+                adjustedPrice = originalPrice.multiply(BigDecimal.valueOf(0.9));
+                reason = "10% discount";
+            }
+            case 1 -> {
+                adjustedPrice = originalPrice.multiply(BigDecimal.valueOf(0.8));
+                reason = "20% discount";
+            }
+            case 2 -> {
+                adjustedPrice = originalPrice.multiply(BigDecimal.valueOf(1.1));
+                reason = "10% increase";
+            }
+            default -> {
+                adjustedPrice = originalPrice.multiply(BigDecimal.valueOf(1.2));
+                reason = "20% increase";
+            }
         }
 
         ProductResponse response = ProductResponse.newBuilder()
                 .setProductId(productId)
-                .setOriginalPrice(originalPrice)
-                .setAdjustedPrice(adjustedPrice)
+                .setOriginalPrice(originalPrice.doubleValue())
+                .setAdjustedPrice(adjustedPrice.doubleValue())
                 .setAdjustmentReason(reason)
                 .build();
 
@@ -53,7 +66,8 @@ public class SmartPricingServiceImpl extends SmartPricingGrpc.SmartPricingImplBa
     @Override
     public void updatePrice(PriceUpdateRequest request, StreamObserver<PriceUpdateResponse> responseObserver) {
         String productId = request.getProductId();
-        double newPrice = request.getNewPrice();
+        double newPriceDouble = request.getNewPrice();
+        BigDecimal newPrice = BigDecimal.valueOf(newPriceDouble);
 
         Product product = productRepository.findById(productId).orElse(null);
         if (product == null) {

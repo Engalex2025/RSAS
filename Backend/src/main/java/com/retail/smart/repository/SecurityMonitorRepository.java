@@ -10,6 +10,6 @@ public interface SecurityMonitorRepository extends JpaRepository<SecurityEvent, 
 
     List<SecurityEvent> findByLocation(String location);
 
-    @Query("SELECT a.location, COUNT(a) FROM SecurityAlert a GROUP BY a.location ORDER BY COUNT(a) DESC")
+    @Query("SELECT a.location, COUNT(a) FROM SecurityEvent a GROUP BY a.location ORDER BY COUNT(a) DESC")
     List<Object[]> countAlertsByLocation();
 }

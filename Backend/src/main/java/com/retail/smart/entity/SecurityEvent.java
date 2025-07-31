@@ -11,10 +11,20 @@ public class SecurityEvent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "camera_id")
     private String cameraId;
+
+    @Column(name = "detected_behavior")
     private String detectedBehavior;
+
+    @Column(name = "alert_level")
+    private String alertLevel;
+
+    private String message;
     private String location;
-    private LocalDateTime timestamp;
+
+    @Column(name = "event_time")
+    private LocalDateTime eventTime;
 
     // Getters and Setters
 
@@ -27,9 +37,15 @@ public class SecurityEvent {
     public String getDetectedBehavior() { return detectedBehavior; }
     public void setDetectedBehavior(String detectedBehavior) { this.detectedBehavior = detectedBehavior; }
 
+    public String getAlertLevel() { return alertLevel; }
+    public void setAlertLevel(String alertLevel) { this.alertLevel = alertLevel; }
+
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
 
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public LocalDateTime getEventTime() { return eventTime; }
+    public void setEventTime(LocalDateTime eventTime) { this.eventTime = eventTime; }
 }

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,11 +25,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private AuthenticationJwt jwtUtil;
 
-    JwtRequestFilter(AuthenticationJwt jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
+    public JwtRequestFilter() {}
 
-    public JwtRequestFilter() {
+    public JwtRequestFilter(AuthenticationJwt jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     void setJwtUtil(AuthenticationJwt jwtUtil) {
@@ -55,20 +55,22 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(AUTH_HEADER_PREFIX.length());
-        String username;
 
         try {
-            username = jwtUtil.getUsernameFromToken(token);
+            var claims = jwtUtil.getClaimsFromToken(token);
+            String username = claims.getSubject();
+            Date expiration = claims.getExpiration();
 
-            if (!jwtUtil.validateToken(token, username)) {
+            if (username == null || expiration.before(new Date())) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
 
-            List<String> roles = jwtUtil.getRolesFromToken(token);
+            List<String> roles = claims.get("roles", List.class);
             var authorities = roles.stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
+    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+    .collect(Collectors.toList());
+
 
             var authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);

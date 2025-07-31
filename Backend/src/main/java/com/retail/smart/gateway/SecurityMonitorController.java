@@ -34,6 +34,13 @@ public class SecurityMonitorController {
         return monitorService.getAllEvents(); 
     }
 
+    @GetMapping("/events/filter")
+    public List<SecurityMonitorDTO> filterEvents(
+            @RequestParam(required = false) String behavior,
+            @RequestParam(required = false) String cameraId) {
+        return monitorService.getFilteredEvents(behavior, cameraId);
+    }
+
     @GetMapping("/alerts/levels")
     public Map<String, Long> getAlertCountsByLevel() {
         return monitorService.getAlertCountsByLevel();
@@ -49,8 +56,9 @@ public class SecurityMonitorController {
         return monitorService.getAverageAlertsPerDay();
     }
 
-    @GetMapping("/alerts/summary")
-    public SecuritySummaryDTO getSecuritySummary() {
-        return monitorService.getSecuritySummary();
-    }
+   @GetMapping("/summary")
+public SecuritySummaryDTO getSecuritySummary() {
+    return monitorService.getSecuritySummary();
+}
+
 }

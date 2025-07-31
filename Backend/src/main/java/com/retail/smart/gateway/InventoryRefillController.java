@@ -1,24 +1,53 @@
 package com.retail.smart.gateway;
 
-import com.retail.smart.dto.InventoryRequestDTO;
+import com.retail.smart.dto.ProductDTO;
+import com.retail.smart.entity.RestockLog;
 import com.retail.smart.service.InventoryRefillServiceImpl;
-import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/inventory")
 public class InventoryRefillController {
 
-    private final InventoryRefillServiceImpl inventoryService;
+    @Autowired
+    private InventoryRefillServiceImpl inventoryService;
 
-    public InventoryRefillController(InventoryRefillServiceImpl inventoryService) {
-        this.inventoryService = inventoryService;
+    /**
+     * Get all products with quantity below the minimum threshold.
+     */
+    @GetMapping("/low-stock")
+    public List<ProductDTO> getLowStockProducts() {
+        return inventoryService.getLowStockProducts();
     }
 
-    @PostMapping("/refill")
-    public ResponseEntity<String> refillInventory(@Valid @RequestBody InventoryRequestDTO request) {
-        inventoryService.refillInventory(request.getProductId(), request.getQuantity());
-        return ResponseEntity.ok("Inventory refill request processed.");
+    /**
+     * Request manual replenishment for a product.
+     */
+    @PostMapping("/request-replenishment")
+    public String requestReplenishment(
+            @RequestParam String productId,
+            @RequestParam int quantity
+    ) {
+        return inventoryService.requestReplenishment(productId, quantity);
+    }
+
+    /**
+     * View restocking history for a product.
+     */
+    @GetMapping("/restock-history")
+    public List<RestockLog> getRestockHistory(@RequestParam String productId) {
+        return inventoryService.getRestockHistory(productId);
+    }
+
+    /**
+     * Get automated restock suggestions for low-stock products.
+     */
+    @GetMapping("/suggestions")
+    public Map<String, String> getSuggestions() {
+        return inventoryService.generateRestockSuggestions();
     }
 }

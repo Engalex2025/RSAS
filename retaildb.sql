@@ -92,3 +92,11 @@ ON DUPLICATE KEY UPDATE password = VALUES(password), role = 'ROLE_ADMIN';
 INSERT INTO users (username, password, role)
 VALUES ('lucas', '$2a$10$K8TQpPXTxlz8eqtTMB9qSeNct14SmZr6aaB/9K0KwDw9Fb3pK10q2', 'ROLE_ADMIN')
 ON DUPLICATE KEY UPDATE password = VALUES(password), role = 'ROLE_ADMIN';
+
+
+UPDATE users SET role = 'ADMIN' WHERE username = 'alexa';
+UPDATE users SET role = 'ADMIN' WHERE username = 'lucas';
+
+
+
+
