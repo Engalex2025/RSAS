@@ -42,12 +42,13 @@ public class SecurityConfiguration {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()         
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")  
-                .requestMatchers("/api/**").authenticated()        
+                .requestMatchers("/api/auth/**").permitAll()              // Login sempre permitido
+                .requestMatchers("/api/inventory/**").permitAll()         // <- INVENTORY SEM AUTENTICAÇÃO
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")       
+                .requestMatchers("/api/**").authenticated()              
                 .anyRequest().denyAll()
             )
-            .authenticationProvider(authenticationProvider())       
+            .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

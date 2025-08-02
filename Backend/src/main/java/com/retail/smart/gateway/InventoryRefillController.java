@@ -18,6 +18,7 @@ public class InventoryRefillController {
 
     /**
      * Manual refill – only productId required.
+     * The system will calculate the refill quantity based on the product area.
      */
     @PostMapping("/manual-refill")
     public String manualRefill(@RequestParam String productId) {
@@ -53,6 +54,7 @@ public class InventoryRefillController {
 
     /**
      * Notify purchasing department about products near minimum stock level.
+     * Triggered when a product is 10 units or less above the minimum.
      */
     @GetMapping("/notify-purchasing")
     public Map<String, String> notifyPurchasingDepartment() {

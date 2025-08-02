@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -22,12 +23,13 @@ public class SmartPricingServiceImpl extends SmartPricingGrpc.SmartPricingImplBa
     public void getPrice(ProductRequest request, StreamObserver<ProductResponse> responseObserver) {
         String productId = request.getProductId();
 
-        Product product = productRepository.findById(productId).orElse(null);
-        if (product == null) {
+        Optional<Product> optionalProduct = productRepository.findByProductId(productId);
+        if (optionalProduct.isEmpty()) {
             responseObserver.onError(new RuntimeException("Product not found"));
             return;
         }
 
+        Product product = optionalProduct.get();
         BigDecimal originalPrice = product.getPrice();
         BigDecimal adjustedPrice;
         String reason;
@@ -69,8 +71,8 @@ public class SmartPricingServiceImpl extends SmartPricingGrpc.SmartPricingImplBa
         double newPriceDouble = request.getNewPrice();
         BigDecimal newPrice = BigDecimal.valueOf(newPriceDouble);
 
-        Product product = productRepository.findById(productId).orElse(null);
-        if (product == null) {
+        Optional<Product> optionalProduct = productRepository.findByProductId(productId);
+        if (optionalProduct.isEmpty()) {
             PriceUpdateResponse response = PriceUpdateResponse.newBuilder()
                     .setProductId(productId)
                     .setSuccess(false)
@@ -82,6 +84,7 @@ public class SmartPricingServiceImpl extends SmartPricingGrpc.SmartPricingImplBa
             return;
         }
 
+        Product product = optionalProduct.get();
         product.setPrice(newPrice);
         productRepository.save(product);
 

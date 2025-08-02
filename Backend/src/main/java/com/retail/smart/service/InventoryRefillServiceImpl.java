@@ -7,13 +7,8 @@ import com.retail.smart.grpc.inventory.InventoryRefillGrpc;
 import com.retail.smart.grpc.inventory.InventoryRequest;
 import com.retail.smart.grpc.inventory.InventoryResponse;
 import com.retail.smart.grpc.inventory.RestockItem;
-import com.retail.smart.grpc.sales.SalesAreaPerformance;
-import com.retail.smart.grpc.sales.SalesHeatmapGrpc;
-import com.retail.smart.grpc.sales.SalesRequest;
 import com.retail.smart.repository.ProductRepository;
 import com.retail.smart.repository.RestockLogRepository;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -33,16 +28,13 @@ public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRef
     @Autowired
     private RestockLogRepository restockLogRepository;
 
-    // gRPC channel to talk to SalesHeatmap
-    private final SalesHeatmapGrpc.SalesHeatmapBlockingStub salesStub;
-
-    public InventoryRefillServiceImpl() {
-        ManagedChannel channel = ManagedChannelBuilder
-                .forAddress("localhost", 6565) // ajuste conforme necessário
-                .usePlaintext()
-                .build();
-        salesStub = SalesHeatmapGrpc.newBlockingStub(channel);
-    }
+    // Fixed sales data copied from SalesHeatmapServiceImpl
+    private static final Map<String, Integer> fixedSales = Map.of(
+            "A101", 160,
+            "B202", 150,
+            "C303", 60,
+            "D404", 100
+    );
 
     @Override
     public StreamObserver<InventoryRequest> streamDeliveries(StreamObserver<InventoryResponse> responseObserver) {
@@ -54,9 +46,10 @@ public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRef
                 String productId = request.getProductId();
                 int quantity = request.getQuantityReceived();
 
-                Product product = productRepository.findByProductId(productId);
-                if (product == null) return;
+                Optional<Product> optional = productRepository.findByProductId(productId);
+                if (optional.isEmpty()) return;
 
+                Product product = optional.get();
                 product.setQuantity(product.getQuantity() + quantity);
                 productRepository.save(product);
 
@@ -94,11 +87,12 @@ public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRef
     }
 
     public String requestReplenishment(String productId, int quantity) {
-        Product product = productRepository.findByProductId(productId);
-        if (product == null) {
+        Optional<Product> optional = productRepository.findByProductId(productId);
+        if (optional.isEmpty()) {
             return "Product not found: " + productId;
         }
 
+        Product product = optional.get();
         product.setQuantity(product.getQuantity() + quantity);
         productRepository.save(product);
 
@@ -112,12 +106,17 @@ public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRef
     }
 
     public String manualRefill(String productId) {
-        Product product = productRepository.findByProductId(productId);
-        if (product == null) {
+        Optional<Product> optional = productRepository.findByProductId(productId);
+        if (optional.isEmpty()) {
             return "Product not found: " + productId;
         }
 
-        // === Decide quantity based on sales performance ===
+        Product product = optional.get();
+
+        if (product.getArea() == null || product.getArea().isBlank()) {
+            return "Product area is not defined for product: " + productId;
+        }
+
         int refillQuantity = decideRefillQuantity(product.getArea());
 
         product.setQuantity(product.getQuantity() + refillQuantity);
@@ -134,22 +133,12 @@ public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRef
     }
 
     private int decideRefillQuantity(String areaCode) {
-        SalesRequest request = SalesRequest.newBuilder()
-                .setRequestTime("WEEK_0")
-                .build();
+        Integer sales = fixedSales.get(areaCode);
+        if (sales == null) return 100;
 
-        Iterator<SalesAreaPerformance> results = salesStub.getHeatmap(request);
-        while (results.hasNext()) {
-            SalesAreaPerformance perf = results.next();
-            if (perf.getAreaCode().equals(areaCode)) {
-                int sales = perf.getTotalSales();
-                if (sales >= 140) return 150;
-                else if (sales >= 100) return 100;
-                else return 50;
-            }
-        }
-
-        return 100; // default
+        if (sales >= 140) return 150;
+        if (sales >= 100) return 100;
+        return 50;
     }
 
     public List<RestockLog> getRestockHistory(String productId) {
