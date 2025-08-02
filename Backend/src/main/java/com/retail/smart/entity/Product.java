@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -14,10 +15,10 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id; 
+    private String id;
 
     @Column(name = "product_id", nullable = false, unique = true)
-    private String productId; 
+    private String productId;
 
     private String name;
 
@@ -29,5 +30,8 @@ public class Product {
     private BigDecimal price;
 
     @Column(name = "last_updated")
-    private java.time.LocalDateTime lastUpdated;
+    private LocalDateTime lastUpdated;
+
+    @Column(name = "area")
+    private String area; // ✅ New field to define area (e.g., A101, B202...)
 }

@@ -1,6 +1,6 @@
 package com.retail.smart.gateway;
 
-import com.retail.smart.dto.ProductDTO;
+import com.retail.smart.dto.RecentRestockDTO;
 import com.retail.smart.entity.RestockLog;
 import com.retail.smart.service.InventoryRefillServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,15 +17,15 @@ public class InventoryRefillController {
     private InventoryRefillServiceImpl inventoryService;
 
     /**
-     * Get all products with quantity below the minimum threshold.
+     * Manual refill – only productId required.
      */
-    @GetMapping("/low-stock")
-    public List<ProductDTO> getLowStockProducts() {
-        return inventoryService.getLowStockProducts();
+    @PostMapping("/manual-refill")
+    public String manualRefill(@RequestParam String productId) {
+        return inventoryService.manualRefill(productId);
     }
 
     /**
-     * Request manual replenishment for a product.
+     * Request manual replenishment with a specific quantity.
      */
     @PostMapping("/request-replenishment")
     public String requestReplenishment(
@@ -44,10 +44,18 @@ public class InventoryRefillController {
     }
 
     /**
-     * Get automated restock suggestions for low-stock products.
+     * Get all products restocked in the last 24 hours.
      */
-    @GetMapping("/suggestions")
-    public Map<String, String> getSuggestions() {
-        return inventoryService.generateRestockSuggestions();
+    @GetMapping("/recent-restocks")
+    public List<RecentRestockDTO> getRecentRestocks() {
+        return inventoryService.getRecentRestocksDTO();
+    }
+
+    /**
+     * Notify purchasing department about products near minimum stock level.
+     */
+    @GetMapping("/notify-purchasing")
+    public Map<String, String> notifyPurchasingDepartment() {
+        return inventoryService.notifyPurchasingDepartment();
     }
 }

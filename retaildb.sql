@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 
+
 CREATE TABLE IF NOT EXISTS restock_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     product_id VARCHAR(50),
@@ -97,6 +98,41 @@ ON DUPLICATE KEY UPDATE password = VALUES(password), role = 'ROLE_ADMIN';
 UPDATE users SET role = 'ADMIN' WHERE username = 'alexa';
 UPDATE users SET role = 'ADMIN' WHERE username = 'lucas';
 
+
+
+UPDATE users SET role = 'ROLE_ADMIN' WHERE username = 'lucas';
+SELECT username, role FROM users;
+
+INSERT INTO products (product_id, name, quantity, minimum_quantity, price)
+VALUES 
+    ('R1001', 'Detergent', 150, 30, 2.99),
+    ('R1002', 'Milk', 150, 40, 1.79),
+    ('R1003', 'Shampoo', 50, 25, 4.99),
+    ('R1004', 'Toilet Paper', 50, 30, 3.29),
+    ('R1005', 'Bleach', 150, 40, 2.49),
+    ('R1006', 'Yogurt', 50, 30, 1.29),
+    ('R1007', 'Soap', 150, 35, 2.19),
+    ('R1008', 'Cheese', 50, 30, 3.89)
+AS new
+ON DUPLICATE KEY UPDATE
+    name = new.name,
+    quantity = new.quantity,
+    minimum_quantity = new.minimum_quantity,
+    price = new.price;
+
+CREATE OR REPLACE VIEW restock_logs_view AS
+SELECT 
+    restock_logs.id,
+    restock_logs.product_id,
+    products.name AS product_name,
+    restock_logs.quantity_received,
+    restock_logs.timestamp
+FROM restock_logs
+LEFT JOIN products ON restock_logs.product_id = products.product_id;
+
+UPDATE products SET name = 'Toothbrush' WHERE product_id = 'R102';
+UPDATE products SET name = 'Fabric Softener' WHERE product_id = 'R1023';
+UPDATE products SET name = 'Bread' WHERE product_id = 'R102';
 
 
 
