@@ -18,6 +18,7 @@ message ProductResponse {
   double originalPrice = 2;
   double adjustedPrice = 3;
   string adjustmentReason = 4;
+  string recommendation = 5; 
 }
 
 message PriceUpdateRequest {

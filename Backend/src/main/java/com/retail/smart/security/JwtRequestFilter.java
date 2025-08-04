@@ -42,7 +42,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String uri = request.getRequestURI();
+        System.out.println("=== Incoming request to: " + uri);
+        System.out.println("Authorization Header: " + request.getHeader("Authorization"));
+
+        // Allow only open endpoints to pass through without token
         if (uri.startsWith("/api/auth") || uri.equals("/ping")) {
+            System.out.println("🟢 Public route, skipping JWT validation");
             filterChain.doFilter(request, response);
             return;
         }
@@ -50,6 +55,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith(AUTH_HEADER_PREFIX)) {
+            System.out.println("❌ Missing or invalid Authorization header");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
@@ -61,20 +67,31 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             String username = claims.getSubject();
             Date expiration = claims.getExpiration();
 
+            System.out.println("Token for user: " + username);
+            System.out.println("Expiration: " + expiration);
+
             if (username == null || expiration.before(new Date())) {
+                System.out.println("❌ Invalid or expired token");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
 
             List<String> roles = claims.get("roles", List.class);
+            System.out.println("Roles from token: " + roles);
+
             var authorities = roles.stream()
-                .map(SimpleGrantedAuthority::new) 
+                .map(role -> new SimpleGrantedAuthority(
+                    role.startsWith("ROLE_") ? role : "ROLE_" + role
+                ))
                 .collect(Collectors.toList());
 
             var authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
+            System.out.println("✅ Authenticated user: " + username);
+
         } catch (Exception e) {
+            System.out.println("❌ Exception while validating token: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }

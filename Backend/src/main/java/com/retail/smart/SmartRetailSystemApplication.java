@@ -9,16 +9,15 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
 import jakarta.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-@ComponentScan(basePackages = "com.retail.smart")
 public class SmartRetailSystemApplication {
 
     @Autowired
@@ -37,7 +36,7 @@ public class SmartRetailSystemApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SmartRetailSystemApplication.class, args);
-        System.out.println(" SmartRetailSystemApplication started and REST + gRPC enabled");
+        System.out.println(" Spring Boot application started (REST + gRPC enabled)");
     }
 
     @PostConstruct
@@ -52,10 +51,10 @@ public class SmartRetailSystemApplication {
 
             grpcServer.start();
             System.out.println(" gRPC Server started on port 9090");
-            System.out.println(" InventoryRefillServiceImpl registered");
-            System.out.println(" SalesHeatmapServiceImpl registered");
-            System.out.println(" SmartPricingServiceImpl registered");
-            System.out.println(" SecurityMonitorServiceImpl registered");
+            System.out.println(" InventoryRefillService registered");
+            System.out.println(" SalesHeatmapService registered");
+            System.out.println(" SmartPricingService registered");
+            System.out.println(" SecurityMonitorService registered");
 
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 System.out.println(" Shutting down gRPC server...");
@@ -66,5 +65,17 @@ public class SmartRetailSystemApplication {
             System.err.println(" Failed to start gRPC server: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    @Autowired
+    public CommandLineRunner verifyProductBeans(ApplicationContext context) {
+        return args -> {
+            System.out.println("🔎 Checking loaded Spring Beans related to 'product':");
+            for (String beanName : context.getBeanDefinitionNames()) {
+                if (beanName.toLowerCase().contains("product")) {
+                    System.out.println("   - " + beanName);
+                }
+            }
+        };
     }
 }

@@ -36,23 +36,26 @@ public class SecurityConfiguration {
         return provider;
     }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()              // Login sempre permitido
-                .requestMatchers("/api/inventory/**").permitAll()         // <- INVENTORY SEM AUTENTICAÇÃO
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")       
-                .requestMatchers("/api/**").authenticated()              
-                .anyRequest().denyAll()
-            )
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+   @Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/auth/**").permitAll()
+            .requestMatchers("/api/inventory/**").permitAll()
+            .requestMatchers("/api/pricing/**").hasRole("ADMIN")
+            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+            .requestMatchers("/error").permitAll()
+            .requestMatchers("/api/**").authenticated()
+            .anyRequest().denyAll()
+        )
+        .authenticationProvider(authenticationProvider())
+        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+    return http.build();
+}
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
