@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
+        <version>3.2.12</version>
         <relativePath/>
     </parent>
 
@@ -50,14 +50,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-<dependency>
-    <groupId>org.junit.jupiter</groupId>
-    <artifactId>junit-jupiter-engine</artifactId>
-    <version>5.10.2</version>
-    <scope>test</scope>
-</dependency>
 
-        <!-- JWT (JJWT) v0.11.5 -->
+        <!-- JUnit -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -117,7 +118,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.30</version>
             <optional>true</optional>
         </dependency>
 
@@ -136,7 +136,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -148,24 +147,23 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Spring Test (for MockHttpServletRequest, etc.) -->
+        <!-- Spring Test -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>6.1.5</version>
             <scope>test</scope>
         </dependency>
 
-        <!-- Servlet API for MockHttpServletRequest/Response -->
+        <!-- Servlet API -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.0.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <build>
+        <!-- Detect OS for protoc -->
         <extensions>
             <extension>
                 <groupId>kr.motd.maven</groupId>
@@ -175,10 +173,10 @@
         </extensions>
 
         <plugins>
+            <!-- Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -192,15 +190,15 @@
                 </configuration>
             </plugin>
 
-            <!-- Protobuf Plugin -->
+            <!-- Protobuf -->
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
                 <version>0.6.1</version>
                 <configuration>
-                    <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:windows-x86_64</protocArtifact>
+                    <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
                     <pluginId>grpc-java</pluginId>
-                    <pluginArtifact>io.grpc:protoc-gen-grpc-java:${protoc-gen-grpc-java.version}:exe:windows-x86_64</pluginArtifact>
+                    <pluginArtifact>io.grpc:protoc-gen-grpc-java:${protoc-gen-grpc-java.version}:exe:${os.detected.classifier}</pluginArtifact>
                 </configuration>
                 <executions>
                     <execution>
@@ -212,11 +210,10 @@
                 </executions>
             </plugin>
 
-            <!-- add generated code to classpath -->
+            <!-- Include generated sources -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>add-source</id>
@@ -241,4 +238,19 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- Fallback para Windows -->
+    <profiles>
+        <profile>
+            <id>windows-default</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                </os>
+            </activation>
+            <properties>
+                <os.detected.classifier>windows-x86_64</os.detected.classifier>
+            </properties>
+        </profile>
+    </profiles>
 </project>
