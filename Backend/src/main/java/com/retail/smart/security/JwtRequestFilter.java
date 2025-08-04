@@ -46,7 +46,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         System.out.println("Authorization Header: " + request.getHeader("Authorization"));
 
         // Allow only open endpoints to pass through without token
-        if (uri.startsWith("/api/auth") || uri.equals("/ping")) {
+        if (uri.startsWith("/api/auth") || uri.equals("/ping") || uri.startsWith("/reports/")) {
             System.out.println("🟢 Public route, skipping JWT validation");
             filterChain.doFilter(request, response);
             return;

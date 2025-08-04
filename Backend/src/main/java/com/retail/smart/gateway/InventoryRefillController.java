@@ -31,8 +31,7 @@ public class InventoryRefillController {
     @PostMapping("/request-replenishment")
     public String requestReplenishment(
             @RequestParam String productId,
-            @RequestParam int quantity
-    ) {
+            @RequestParam int quantity) {
         return inventoryService.requestReplenishment(productId, quantity);
     }
 
@@ -59,5 +58,10 @@ public class InventoryRefillController {
     @GetMapping("/notify-purchasing")
     public Map<String, String> notifyPurchasingDepartment() {
         return inventoryService.notifyPurchasingDepartment();
+    }
+
+    @GetMapping("/scheduled-alerts")
+    public List<String> getScheduledAlerts() {
+        return inventoryService.getScheduledAlerts();
     }
 }

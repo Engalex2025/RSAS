@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -27,14 +28,17 @@ public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRef
 
     @Autowired
     private RestockLogRepository restockLogRepository;
+    // Deque to hold scheduled alerts for purchasing department
+    private final Deque<String> scheduledAlerts = new ConcurrentLinkedDeque<>();
+    // Maximum number of alerts to keep in memory
+    private static final int MAX_ALERTS_STORED = 100;
 
     // Fixed sales data copied from SalesHeatmapServiceImpl
     private static final Map<String, Integer> fixedSales = Map.of(
             "A101", 160,
             "B202", 150,
             "C303", 60,
-            "D404", 100
-    );
+            "D404", 100);
 
     @Override
     public StreamObserver<InventoryRequest> streamDeliveries(StreamObserver<InventoryResponse> responseObserver) {
@@ -47,7 +51,8 @@ public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRef
                 int quantity = request.getQuantityReceived();
 
                 Optional<Product> optional = productRepository.findByProductId(productId);
-                if (optional.isEmpty()) return;
+                if (optional.isEmpty())
+                    return;
 
                 Product product = optional.get();
                 product.setQuantity(product.getQuantity() + quantity);
@@ -134,10 +139,13 @@ public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRef
 
     private int decideRefillQuantity(String areaCode) {
         Integer sales = fixedSales.get(areaCode);
-        if (sales == null) return 100;
+        if (sales == null)
+            return 100;
 
-        if (sales >= 140) return 150;
-        if (sales >= 100) return 100;
+        if (sales >= 140)
+            return 150;
+        if (sales >= 100)
+            return 100;
         return 50;
     }
 
@@ -188,20 +196,33 @@ public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRef
             product.setQuantity(Math.max(newQuantity, 0));
             productRepository.save(product);
 
-            System.out.println("🛒 Sold " + sold + " units of " + product.getName()
+            storeAlert(" Sold " + sold + " units of " + product.getName()
                     + ". New quantity: " + product.getQuantity());
 
             int diff = product.getQuantity() - product.getMinimumQuantity();
 
             if (diff > 0 && diff <= 10) {
-                System.out.println("📦 [NOTICE] '" + product.getName() +
+                System.out.println(" [NOTICE] '" + product.getName() +
                         "' is nearing minimum stock. Notify purchasing department.");
             }
 
             if (product.getQuantity() <= product.getMinimumQuantity()) {
-                System.out.println("🚨 [ALERT] '" + product.getName() +
+                System.out.println("[ALERT] '" + product.getName() +
                         "' is below minimum stock. Awaiting manual refill.");
             }
         }
+    }
+
+    private void storeAlert(String msg) {
+        scheduledAlerts.addLast(msg);
+        if (scheduledAlerts.size() > MAX_ALERTS_STORED) {
+            scheduledAlerts.removeFirst();
+        }
+        // Log the alert to console or any logging system
+        System.out.println(msg);
+    }
+
+    public List<String> getScheduledAlerts() {
+        return new ArrayList<>(scheduledAlerts);
     }
 }

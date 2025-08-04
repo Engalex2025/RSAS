@@ -1,12 +1,65 @@
-/* === CUSTOM STYLES FOR RSAS2 === */
-
-/* Low stock warning style */
-.low-stock {
-  color: #b30000;
-  font-weight: bold;
+/* ==== Services Grid ==== */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
 }
 
-/* Styling for result panels */
+.service-card {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, opacity 0.8s ease;
+  opacity: 0;
+  /* Fade-in start */
+}
+
+.service-card.visible {
+  opacity: 1;
+  /* Fade-in end */
+}
+
+.service-card:hover {
+  transform: translateY(-5px) scale(1.02);
+}
+
+.service-card img {
+  max-width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.service-card h3 {
+  margin-bottom: 8px;
+}
+
+.service-card p {
+  font-size: 0.95em;
+  color: #333;
+  min-height: 50px;
+}
+
+.service-card .button {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 14px;
+  background-color: #001f3f;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.service-card .button:hover {
+  background-color: #004080;
+}
+
+/* ==== Result Panels ==== */
 #priceResult,
 #inventoryList,
 #heatmapOutput,
@@ -27,13 +80,13 @@
   margin-bottom: 10px;
 }
 
-/* Button styles */
+/* ==== Button styles ==== */
 button,
 input[type="submit"] {
   border-radius: 25px;
   padding: 0.6em 1.4em;
   font-weight: 600;
-  background-color: #006699;
+  background-color: #003366;
   color: white;
   border: none;
   transition: background 0.3s ease;
@@ -41,7 +94,7 @@ input[type="submit"] {
 
 button:hover,
 input[type="submit"]:hover {
-  background-color: #004466;
+  background-color: #004080;
 }
 
 /* Error messages */
@@ -51,8 +104,6 @@ p.error {
 }
 
 /* ==== SMART PRICING STYLING ==== */
-
-/* Grid layout for Smart Pricing */
 .smart-pricing-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -61,14 +112,13 @@ p.error {
   align-items: start;
 }
 
-/* Cards styling */
 .smart-card {
   background: #f9f9f9;
   border: 1px solid #ddd;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
-  overflow-x: auto; /* Permite rolagem horizontal para tabelas grandes */
+  overflow-x: auto;
 }
 
 .smart-card h3 {
@@ -123,12 +173,12 @@ p.error {
 }
 
 @media (min-width: 901px) {
- 
   .smart-card:has(table) {
     grid-column: 1 / -1;
   }
 }
-/* === PRICE HISTORY TABLE STYLING === */
+
+/* ==== TABLE STYLING ==== */
 .result-box table {
   width: 100%;
   border-collapse: collapse;
@@ -137,149 +187,424 @@ p.error {
 
 .result-box th {
   font-weight: bold;
-  border-bottom: 2px solid #333; /* Horizontal line below header */
+  background-color: #003366;
+  color: white;
   padding: 8px;
   text-align: left;
-  border-right: 1px solid #ccc; /* Vertical line between columns */
+  border-right: 2px solid #ffffff;
 }
 
 .result-box th:last-child {
-  border-right: none; /* Remove vertical line from last column */
+  border-right: none;
 }
 
 .result-box td {
   padding: 8px;
-  border-right: 1px solid #ccc; /* Vertical line between columns */
+  border-right: 2px solid #ccc;
 }
 
 .result-box td:last-child {
-  border-right: none; /* Remove vertical line from last column */
-}
-/* === BUTTON STYLING === */
-button,
-input[type="submit"] {
-    border-radius: 25px;
-    padding: 0.6em 1.4em;
-    font-weight: 600;
-    background-color: #003366; /* Navy blue */
-    color: white;
-    border: none;
-    transition: background 0.3s ease;
-}
-
-button:hover,
-input[type="submit"]:hover {
-    background-color: #004080; /* Lighter navy on hover */
-}
-
-/* === TABLE STYLING === */
-.result-box table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-.result-box th {
-    font-weight: bold;
-    background-color: #003366; /* Navy blue header */
-    color: white;
-    padding: 8px;
-    text-align: left;
-    border-right: 2px solid #ffffff;
-}
-
-.result-box th:last-child {
-    border-right: none;
-}
-
-.result-box td {
-    padding: 8px;
-    border-right: 2px solid #ccc;
-}
-
-.result-box td:last-child {
-    border-right: none;
+  border-right: none;
 }
 
 .result-box tr:nth-child(even) {
-    background-color: #f0f4f8; /* Soft gray-blue for even rows */
+  background-color: #f0f4f8;
 }
 
 .result-box tr:nth-child(odd) {
-    background-color: #ffffff; /* White for odd rows */
+  background-color: #ffffff;
 }
-/* Fade + slide animation */
+
+/* ==== ANIMATIONS ==== */
 @keyframes fadeSlideIn {
-    0% {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.result-box {
+  0% {
     opacity: 0;
+    transform: translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.result-box.show-animation {
-    animation: fadeSlideIn 0.5s ease forwards;
-}
-/* Fade + zoom animation */
 @keyframes fadeZoomIn {
-    0% {
-        opacity: 0;
-        transform: scale(0.97) translateY(10px);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-.result-box {
+  0% {
     opacity: 0;
     transform: scale(0.97) translateY(10px);
-}
+  }
 
-.result-box.show-animation {
-    animation: fadeZoomIn 0.5s ease forwards;
-}
-/* Fade + zoom animation for whole box */
-@keyframes fadeZoomIn {
-    0% {
-        opacity: 0;
-        transform: scale(0.97) translateY(10px);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .result-box {
-    opacity: 0;
-    transform: scale(0.97) translateY(10px);
+  opacity: 0;
+  transform: scale(0.97) translateY(10px);
 }
 
 .result-box.show-animation {
-    animation: fadeZoomIn 0.5s ease forwards;
+  animation: fadeZoomIn 0.5s ease forwards;
 }
 
 /* Table column fade-in */
 @keyframes fadeInCell {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .result-box table tr td,
 .result-box table tr th {
-    opacity: 0;
+  opacity: 0;
 }
 
 .result-box table.animate-columns tr td,
 .result-box table.animate-columns tr th {
-    animation: fadeInCell 0.4s ease forwards;
+  animation: fadeInCell 0.4s ease forwards;
+}
+
+/* ==== HOME SERVICES ENHANCEMENTS ==== */
+#home .services-grid {
+  gap: 25px;
+  margin-top: 30px;
+}
+
+#home .service-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  opacity: 0;
+  animation: fadeZoomIn 0.5s ease forwards;
+}
+
+#home .service-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+#home .service-card img {
+  max-width: 120px;
+  margin-bottom: 15px;
+}
+
+#home .service-card h3 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  color: #003366;
+}
+
+#home .service-card p {
+  font-size: 0.95em;
+  color: #444;
+  min-height: 50px;
+}
+
+#home .service-card .button {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #003366;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+#home .service-card .button:hover {
+  background-color: #004080;
+}
+
+/* ============================
+   Responsive Breakpoints
+   ============================ */
+
+/* Tablet / small desktop */
+@media screen and (max-width: 980px) {
+
+  /* Allow cards to wrap into two columns */
+  #main>.panel.intro .services-grid {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  #main>.panel.intro .services-grid .service-card {
+    flex: 0 0 45% !important;
+    /* two cards per row */
+    max-width: 45% !important;
+    margin-bottom: 20px !important;
+  }
+}
+
+/* === Home Intro Panel Overrides === */
+#home.panel.intro {
+  display: block;
+  /* restore normal block flow */
+  height: auto;
+  /* allow height to adjust to content */
+  min-height: auto;
+  /* remove any minimum height */
+  max-height: none;
+  /* remove any maximum height */
+  padding-bottom: 20px;
+  /* space below the cards */
+}
+
+/* === Center the header === */
+#home.panel.intro>header {
+  text-align: center;
+  /* center title and subtitle */
+  margin-bottom: 30px;
+  /* space between header and cards */
+}
+
+/* === Single row of service cards === */
+#home.panel.intro .services-grid {
+  display: flex;
+  /* use flex layout */
+  flex-wrap: nowrap;
+  /* prevent wrapping to next line */
+  justify-content: center;
+  /* center cards within container */
+  align-items: stretch;
+  /* ensure equal height for all cards */
+  gap: 25px;
+  /* space between cards */
+  margin: 0 auto 20px;
+  /* center container and add bottom margin */
+  width: 100%;
+  /* full available width */
+  overflow-x: auto;
+  /* horizontal scroll if needed */
+}
+
+/* === Individual service card styling === */
+#home.panel.intro .services-grid .service-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* === Mobile portrait adjustments === */
+@media screen and (max-width: 736px) {
+
+  /* Stack cards one per row using grid */
+  #main>.panel.intro .services-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  #main>.panel.intro .services-grid .service-card {
+    flex: none !important;
+    /* disable flex on cards */
+    max-width: 100% !important;
+    /* full width cards */
+  }
+
+  /* Tighter header padding */
+  #main>.panel.intro>header {
+    padding: 2em !important;
+  }
+
+  /* Smaller header text */
+  #main>.panel.intro header h1 {
+    font-size: 1.75em !important;
+  }
+
+  #main>.panel.intro header p {
+    font-size: 1em !important;
+  }
+}
+
+/* ============================= */
+/* Inventory Section Styling     */
+/* ============================= */
+
+/* Container for each action block */
+#inventory .inventory-action {
+  background: #fff;
+  /* White background */
+  border-radius: 8px;
+  /* Rounded corners */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* Soft shadow */
+  padding: 1.5em;
+  /* Inner spacing */
+  margin-bottom: 1.5em;
+  /* Space between blocks */
+}
+
+/* Section headers inside each block */
+#inventory .inventory-action h3 {
+  margin-bottom: 0.75em;
+  /* Space below heading */
+  font-size: 1.2em;
+  /* Slightly larger font */
+  color: #003366;
+  /* Theme dark blue */
+}
+
+/* Inputs and buttons line up nicely */
+#inventory .inventory-action input[type="text"],
+#inventory .inventory-action input[type="number"],
+#inventory .inventory-action button {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.5em;
+  /* Gap between elements */
+  margin-bottom: 0.5em;
+  /* Bottom margin for wrapping */
+  font-size: 1em;
+}
+
+/* Text‐input styling */
+#inventory .inventory-action input[type="text"],
+#inventory .inventory-action input[type="number"] {
+  padding: 0.6em 0.8em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 8em;
+  /* Fixed width for consistency */
+}
+
+/* Button styling (matches theme) */
+#inventory .inventory-action button {
+  padding: 0.6em 1.2em;
+  background-color: #003366;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#inventory .inventory-action button:hover {
+  background-color: #004080;
+  /* Slightly lighter on hover */
+}
+
+/* Result containers */
+#inventory .inventory-action>div {
+  margin-top: 0.75em;
+  /* Space above results */
+  color: #333;
+  /* Dark text */
+}
+
+/* Low‐stock warning style */
+#inventory .inventory-action .low-stock {
+  color: #d9534f;
+  /* Bootstrap red for warnings */
+  font-weight: bold;
+}
+
+/* ============================= */
+/* Responsive adjustments        */
+/* ============================= */
+@media screen and (max-width: 736px) {
+
+  /* Stack inputs/buttons vertically */
+  #inventory .inventory-action input,
+  #inventory .inventory-action button {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
+/* Constrain notification panel height and enable scrolling */
+#notifyPurchasingResult {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 8px;
+  background: #fafafa;
+}
+
+/* ==== WEEK SELECT DROPDOWN STYLE ==== */
+.select-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.select-wrapper select {
+  border: 2px solid #003366;
+  /* azul padrão */
+  border-radius: 4px;
+  padding: 0.4rem 1rem;
+  background-color: #fff;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width='10'%20height='6'%20viewBox='0%200%2010%206'%20xmlns='http://www.w3.org/2000/svg'%3E%3Cpath%20d='M0%200l5%206%205-6z'%20fill='%23003366'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: calc(100% - 0.5rem) center;
+  cursor: pointer;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+/* Table base style */
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.styled-table thead tr {
+  background-color: #164976;
+  color: #ffffff;
+}
+
+
+.styled-table th,
+.styled-table td {
+  padding: 0.75rem 1rem;
+  border: 1px solid #dddddd;
+}
+
+.styled-table tbody tr:nth-child(even) {
+  background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Headings for relocation suggestions */
+#relocationOutput h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+#relocationOutput ul {
+  list-style: disc inside;
+  padding-left: 1rem;
+  margin: 0;
+}
+
+#relocationOutput li {
+  margin-bottom: 0.5rem;
 }

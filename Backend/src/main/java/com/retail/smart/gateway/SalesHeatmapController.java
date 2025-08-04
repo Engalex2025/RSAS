@@ -4,9 +4,9 @@ import com.retail.smart.dto.SalesHeatmapDTO;
 import com.retail.smart.dto.SalesHeatmapDTO.HeatmapEntry;
 import com.retail.smart.dto.SalesHeatmapDTO.RelocationSuggestionEntry;
 import com.retail.smart.entity.RelocationSuggestion;
+import com.retail.smart.grpc.sales.SalesAreaPerformance;
 import com.retail.smart.grpc.sales.SalesHeatmapGrpc;
 import com.retail.smart.grpc.sales.SalesRequest;
-import com.retail.smart.grpc.sales.SalesAreaPerformance;
 import com.retail.smart.repository.RelocationSuggestionRepository;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -14,8 +14,6 @@ import io.grpc.stub.StreamObserver;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -29,12 +27,34 @@ public class SalesHeatmapController {
         this.relocationSuggestionRepository = relocationSuggestionRepository;
     }
 
+    /**
+     * Endpoint principal que retorna heatmap + sugestões em um DTO
+     */
     @GetMapping("/api/sales/heatmap")
     public SalesHeatmapDTO getSalesHeatmap(
             @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "0") int week
-    ) throws InterruptedException {
+            @RequestParam(defaultValue = "0") int week) throws InterruptedException {
+        return computeFullHeatmap(category, week);
+    }
 
+    /**
+     * Novo endpoint: retorna apenas a lista de áreas e vendas
+     */
+    @GetMapping("/api/sales/heatmap/areas")
+    public List<HeatmapEntry> getHeatmapAreas(
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "0") int week) throws InterruptedException {
+        return computeFullHeatmap(category, week).getHeatmap();
+    }
+
+    @GetMapping("/api/sales/heatmap/relocations")
+    public List<RelocationSuggestionEntry> getRelocationSuggestions(
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "0") int week) throws InterruptedException {
+        return computeFullHeatmap(category, week).getRelocationSuggestions();
+    }
+
+    private SalesHeatmapDTO computeFullHeatmap(String category, int week) throws InterruptedException {
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 9090)
                 .usePlaintext()
                 .build();
@@ -67,90 +87,86 @@ public class SalesHeatmapController {
                 .setRequestTime("WEEK_" + week)
                 .build(), new StreamObserver<>() {
 
-            @Override
-            public void onNext(SalesAreaPerformance value) {
-                List<String> categories = value.getTopCategoriesList();
-                salesMap.put(value.getAreaCode(), value.getTotalSales());
+                    @Override
+                    public void onNext(SalesAreaPerformance value) {
+                        List<String> categories = value.getTopCategoriesList();
+                        salesMap.put(value.getAreaCode(), value.getTotalSales());
 
-                heatmap.add(new HeatmapEntry(
-                        value.getAreaCode(),
-                        value.getTotalSales(),
-                        categories,
-                        value.getSuggestion()
-                ));
+                        heatmap.add(new HeatmapEntry(
+                                value.getAreaCode(),
+                                value.getTotalSales(),
+                                categories,
+                                value.getSuggestion()));
 
-                if (value.getTotalSales() < 100) {
-                    String chosenCategory = null;
+                        if (value.getTotalSales() < 100) {
+                            String chosenCategory = null;
 
-                    if (category != null && categories.contains(category.toLowerCase())) {
-                        chosenCategory = category.toLowerCase();
-                    } else if (category == null && !categories.isEmpty()) {
-                        chosenCategory = categories.get(0);
-                    }
+                            if (category != null && categories.contains(category.toLowerCase())) {
+                                chosenCategory = category.toLowerCase();
+                            } else if (category == null && !categories.isEmpty()) {
+                                chosenCategory = categories.get(0);
+                            }
 
-                    if (chosenCategory != null) {
-                        String fromArea = value.getAreaCode();
-                        int fromSales = value.getTotalSales();
-                        int fromPrevious = previousSalesMap.getOrDefault(fromArea, fromSales);
-                        int dropPercent = getPercentageDrop(fromPrevious, fromSales);
+                            if (chosenCategory != null) {
+                                String fromArea = value.getAreaCode();
+                                int fromSales = value.getTotalSales();
+                                int fromPrevious = previousSalesMap.getOrDefault(fromArea, fromSales);
+                                int dropPercent = getPercentageDrop(fromPrevious, fromSales);
 
-                        Optional<Map.Entry<String, Integer>> toAreaEntry = salesMap.entrySet().stream()
-                                .filter(e -> {
-                                    String area = e.getKey();
-                                    int current = e.getValue();
-                                    int previous = previousSalesMap.getOrDefault(area, current);
-                                    return !area.equals(fromArea) && current >= previous;
-                                })
-                                .max(Map.Entry.comparingByValue());
+                                Optional<Map.Entry<String, Integer>> toAreaEntry = salesMap.entrySet().stream()
+                                        .filter(e -> {
+                                            String area = e.getKey();
+                                            int current = e.getValue();
+                                            int previous = previousSalesMap.getOrDefault(area, current);
+                                            return !area.equals(fromArea) && current >= previous;
+                                        })
+                                        .max(Map.Entry.comparingByValue());
 
-                        if (toAreaEntry.isPresent()) {
-                            String toArea = toAreaEntry.get().getKey();
-                            int toCurrent = toAreaEntry.get().getValue();
-                            int toPrevious = previousSalesMap.getOrDefault(toArea, toCurrent);
-                            int risePercent = getPercentageRise(toPrevious, toCurrent);
+                                if (toAreaEntry.isPresent()) {
+                                    String toArea = toAreaEntry.get().getKey();
+                                    int toCurrent = toAreaEntry.get().getValue();
+                                    int toPrevious = previousSalesMap.getOrDefault(toArea, toCurrent);
+                                    int risePercent = getPercentageRise(toPrevious, toCurrent);
 
-                            String productId = "R" + (3000 + new Random().nextInt(999));
-                            String productName = getProductNameByCategory(chosenCategory);
+                                    String productId = "R" + (3000 + new Random().nextInt(999));
+                                    String productName = getProductNameByCategory(chosenCategory);
 
-                            String reason = String.format(
-                                    "Sales of %s products in %s dropped %d%% compared to previous week. %s had a %d%% rise. Suggested move to rebalance demand.",
-                                    chosenCategory, fromArea, dropPercent, toArea, risePercent
-                            );
+                                    String reason = String.format(
+                                            "Sales of %s products in %s dropped %d%% compared to previous week. %s had a %d%% rise. Suggested move to rebalance demand.",
+                                            chosenCategory, fromArea, dropPercent, toArea, risePercent);
 
-                            suggestions.add(new RelocationSuggestionEntry(
-                                    productId,
-                                    productName,
-                                    chosenCategory,
-                                    fromArea,
-                                    toArea,
-                                    reason
-                            ));
+                                    suggestions.add(new RelocationSuggestionEntry(
+                                            productId,
+                                            productName,
+                                            chosenCategory,
+                                            fromArea,
+                                            toArea,
+                                            reason));
 
-                            relocationSuggestionRepository.save(new RelocationSuggestion(
-                                    productId,
-                                    productName,
-                                    chosenCategory,
-                                    fromArea,
-                                    toArea,
-                                    reason,
-                                    week
-                            ));
+                                    relocationSuggestionRepository.save(new RelocationSuggestion(
+                                            productId,
+                                            productName,
+                                            chosenCategory,
+                                            fromArea,
+                                            toArea,
+                                            reason,
+                                            week));
+                                }
+                            }
                         }
                     }
-                }
-            }
 
-            @Override
-            public void onError(Throwable t) {
-                t.printStackTrace();
-                latch.countDown();
-            }
+                    @Override
+                    public void onError(Throwable t) {
+                        t.printStackTrace();
+                        latch.countDown();
+                    }
 
-            @Override
-            public void onCompleted() {
-                latch.countDown();
-            }
-        });
+                    @Override
+                    public void onCompleted() {
+                        latch.countDown();
+                    }
+                });
 
         latch.await();
         channel.shutdown();
@@ -170,12 +186,14 @@ public class SalesHeatmapController {
     }
 
     private int getPercentageDrop(int previous, int current) {
-        if (previous == 0) return 100;
+        if (previous == 0)
+            return 100;
         return (int) Math.round(((double) (previous - current) / previous) * 100);
     }
 
     private int getPercentageRise(int previous, int current) {
-        if (previous == 0) return 100;
+        if (previous == 0)
+            return 100;
         return (int) Math.round(((double) (current - previous) / previous) * 100);
     }
 }
