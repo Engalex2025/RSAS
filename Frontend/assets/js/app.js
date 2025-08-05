@@ -1,4 +1,6 @@
-// === UTIL: GET AUTH HEADERS ===
+// ==============================
+// AUTH HELPERS
+// ==============================
 function getAuthHeaders() {
   const token = localStorage.getItem("jwtToken");
   return {
@@ -7,14 +9,14 @@ function getAuthHeaders() {
   };
 }
 
-// === ANIMATION HELPER ===
+// ==============================
+// ANIMATION HELPERS
+// ==============================
 function applyAnimation(element) {
-  // Reset fade+zoom
   element.classList.remove("show-animation");
   void element.offsetWidth;
   element.classList.add("show-animation");
 
-  // Column-by-column table animation
   const table = element.querySelector("table");
   if (table) {
     table.classList.add("animate-columns");
@@ -24,9 +26,14 @@ function applyAnimation(element) {
   }
 }
 
-// Wait until the DOM is fully loaded before wiring up event listeners
+// ==============================
+// DOM LOADED EVENT
+// ==============================
 document.addEventListener("DOMContentLoaded", () => {
-  // === LOGIN ===
+
+  // ==============================
+  // LOGIN
+  // ==============================
   document.getElementById("loginForm")?.addEventListener("submit", (e) => {
     e.preventDefault();
     const username = document.getElementById("username").value.trim();
@@ -40,7 +47,10 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify({ username, password }),
     })
       .then(res => {
-        if (!res.ok) throw new Error("Invalid credentials.");
+        if (!res.ok) {
+          localStorage.removeItem("jwtToken");
+          throw new Error("Invalid credentials.");
+        }
         return res.json();
       })
       .then(data => {
@@ -52,7 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 
-  // === SMART PRICING ===
+  // ==============================
+  // SMART PRICING - GET PRICE
+  // ==============================
   document.getElementById("smartPricingForm")?.addEventListener("submit", (e) => {
     e.preventDefault();
     const productId = document.getElementById("productId").value.trim();
@@ -82,6 +94,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 
+  // ==============================
+  // SMART PRICING - AUTO ADJUST
+  // ==============================
   document.getElementById("autoAdjustForm")?.addEventListener("submit", (e) => {
     e.preventDefault();
     const productId = document.getElementById("autoAdjustProductId").value.trim();
@@ -114,7 +129,9 @@ document.addEventListener("DOMContentLoaded", () => {
         applyAnimation(resultDiv);
       });
   });
-
+  // ==============================
+  // SMART PRICING - HISTORY ALL
+  // ==============================
   document.getElementById("loadHistoryAll")?.addEventListener("click", () => {
     const historyDiv = document.getElementById("historyAllResult");
     historyDiv.innerHTML = "Loading...";
@@ -154,6 +171,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 
+  // ==============================
+  // SMART PRICING - HISTORY BY PRODUCT
+  // ==============================
   document.getElementById("historyByProductForm")?.addEventListener("submit", (e) => {
     e.preventDefault();
     const productId = document.getElementById("historyProductId").value.trim();
@@ -194,7 +214,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 
-  // === INVENTORY ACTIONS ===
+  // ==============================
+  // INVENTORY - MANUAL REFILL
+  // ==============================
   document.getElementById("btnManualRefill")?.addEventListener("click", () => {
     const productId = document.getElementById("manualProductId").value.trim();
     const result = document.getElementById("manualRefillResult");
@@ -212,6 +234,9 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => result.innerHTML = `<p class="error">${err.message}</p>`);
   });
 
+  // ==============================
+  // INVENTORY - REQUEST REPLENISHMENT
+  // ==============================
   document.getElementById("btnRequestRepl")?.addEventListener("click", () => {
     const productId = document.getElementById("reqProductId").value.trim();
     const quantity = Number(document.getElementById("reqQuantity").value);
@@ -230,7 +255,9 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => result.innerHTML = `<p class="error">${err.message}</p>`);
   });
 
-  // === Restock History ===
+  // ==============================
+  // INVENTORY - RESTOCK HISTORY
+  // ==============================
   document.getElementById("btnRestockHist")?.addEventListener("click", () => {
     const productId = document.getElementById("histProductId").value.trim();
     const resultDiv = document.getElementById("restockHistoryResult");
@@ -260,7 +287,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let html = "<ul>";
       data.forEach(log => {
-        // Pull out the real fields from your payload:
         const pid = log.product.productId || log.product.id;
         const qty = log.quantityAdded;
         const ts = new Date(log.timestamp).toLocaleString();
@@ -270,8 +296,9 @@ document.addEventListener("DOMContentLoaded", () => {
       result.innerHTML = html;
     }
   });
-
-  // === Recent Restocks ===
+  // ==============================
+  // INVENTORY - RECENT RESTOCKS
+  // ==============================
   document.getElementById("btnRecentRestocks")?.addEventListener("click", () => {
     const resultDiv = document.getElementById("recentRestocksResult");
     resultDiv.innerHTML = "Loading recent restocks…";
@@ -299,7 +326,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let html = "<ul>";
       data.forEach(item => {
-        // Adapt these to the fields your DTO exposes:
         const pid = item.productId || (item.product && item.product.productId);
         const qty = item.quantity || item.quantityAdded;
         const ts = new Date(item.timestamp).toLocaleString();
@@ -310,7 +336,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-
+  // ==============================
+  // INVENTORY - PURCHASING NOTIFICATIONS
+  // ==============================
   function loadPurchasingNotifications() {
     const container = document.getElementById("notifyPurchasingResult");
     container.innerHTML = "Loading inventory alerts…";
@@ -328,15 +356,12 @@ document.addEventListener("DOMContentLoaded", () => {
           container.innerHTML = "<p>No inventory alerts at this time.</p>";
           return;
         }
-        // Build list of messages
         let html = '<ul class="notifications">';
         alerts.forEach(msg => {
           html += `<li>${msg}</li>`;
         });
         html += "</ul>";
         container.innerHTML = html;
-
-        // Auto-scroll to bottom to show latest alerts
         container.scrollTop = container.scrollHeight;
       })
       .catch(err => {
@@ -344,9 +369,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-
-
-  // === SALES HEATMAP ===
+  // ==============================
+  // SALES HEATMAP
+  // ==============================
   document.getElementById("heatmapForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const week = document.getElementById("weekSelector").value;
@@ -378,7 +403,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </tr>
         `;
       });
-      table += `</tbody></table>`;
+      table += "</tbody></table>";
       output.innerHTML = table;
       applyAnimation(output);
 
@@ -397,8 +422,6 @@ document.addEventListener("DOMContentLoaded", () => {
         applyAnimation(suggestions);
       }
 
-
-      // Draw bar chart
       if (window.salesChartInstance) window.salesChartInstance.destroy();
       const labels = dto.heatmap.map(h => h.areaCode);
       const values = dto.heatmap.map(h => h.totalSales);
@@ -408,97 +431,39 @@ document.addEventListener("DOMContentLoaded", () => {
         options: { responsive: true, scales: { y: { beginAtZero: true } } }
       });
 
-      // store for CSV or other exports
       window.lastHeatmapData = dto.heatmap;
-
     } catch (err) {
       output.innerHTML = `<p class="error">Error loading heatmap: ${err.message}</p>`;
     }
   });
 
-  // Function to download the pre-generated Word report
-  function downloadWordReport() {
-    const url = '/reports/Sales_Heatmap_Report_Final.docx';
+  // ==============================
+  // EXPORT HEATMAP CSV
+  // ==============================
+  function exportHeatmapCSV() {
+    if (!window.lastHeatmapData) {
+      alert('Please generate the heatmap first.');
+      return;
+    }
+    let csv = 'Area,Sales,TopCategories\n';
+    window.lastHeatmapData.forEach(entry => {
+      const cats = '"' + entry.topCategories.join(';') + '"';
+      csv += `${entry.areaCode},${entry.totalSales},${cats}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'Sales_Heatmap_Report_Final.docx';
+    a.download = `heatmap_week_${document.getElementById('weekSelector').value}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
-
-
-  // === ADD PRODUCT ===
-  document.getElementById("addProductForm")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const product = {
-      productId: document.getElementById("newProductId").value.trim(),
-      name: document.getElementById("newProductName").value.trim(),
-      quantity: parseInt(document.getElementById("newQuantity").value),
-      minimumQuantity: parseInt(document.getElementById("newMinQuantity").value),
-      price: parseFloat(document.getElementById("newPrice").value),
-      area: document.getElementById("newArea").value.trim()
-    };
-    const resultDiv = document.getElementById("addProductResult");
-    resultDiv.innerHTML = "Submitting...";
-
-    fetch("http://localhost:8080/api/products", {
-      method: "POST",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(product)
-    })
-      .then(res => res.text())
-      .then(msg => {
-        resultDiv.innerHTML = `<p style="color: green;">${msg}</p>`;
-      })
-      .catch(err => {
-        resultDiv.innerHTML = `<p class="error">Error: ${err.message}</p>`;
-      });
-  });
-
-  // === FADE-IN ANIMATION FOR SERVICE CARDS ===
-  document.querySelectorAll(".service-card").forEach((card, i) => {
-    setTimeout(() => card.classList.add("visible"), i * 200);
-  });
-
-  if (window.location.hash === "#inventory") {
-    loadPurchasingNotifications();
-  }
-
-  window.addEventListener("hashchange", () => {
-    if (window.location.hash === "#inventory") {
-      loadPurchasingNotifications();
-    }
-  });
-
-
-  setInterval(() => {
-    if (window.location.hash === "#inventory") {
-      loadPurchasingNotifications();
-    }
-  }, 6000);
-
-  document.getElementById('downloadReportBtn').addEventListener('click', async () => {
-    try {
-      const res = await fetch('http://localhost:8080/reports/Sales_Heatmap_Report_Final.docx');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Sales_Heatmap_Report_Final.docx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      alert('Erro ao baixar relatório: ' + err.message);
-    }
-  });
-
-  // === SECURITY MONITOR ===
-
+  // ==============================
+  // SECURITY MONITOR
+  // ==============================
   async function fetchSecurityAlerts() {
     const out = document.getElementById("securityOutput");
     out.innerHTML = "Loading alerts…";
@@ -532,6 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
       applyAnimation(out);
     }
   }
+
   async function fetchSecuritySummary() {
     const out = document.getElementById("securitySummary");
     out.innerHTML = "Loading summary…";
@@ -541,7 +507,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const s = await res.json();
-      // Monta o HTML
       let html = `
       <h3>Security Summary</h3>
       <p><strong>Total Alerts:</strong> ${s.totalAlerts}</p>
@@ -555,7 +520,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       html += "</ul>";
       out.innerHTML = html;
-
       applyAnimation(out);
     } catch (err) {
       out.innerHTML = `<p class="error">Error loading summary: ${err.message}</p>`;
@@ -563,10 +527,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-
   document.getElementById("btnLoadSecurity").addEventListener("click", fetchSecurityAlerts);
   document.getElementById("btnLoadSummary").addEventListener("click", fetchSecuritySummary);
-  
 
   setInterval(() => {
     if (window.location.hash === "#security") {
@@ -574,28 +536,4 @@ document.addEventListener("DOMContentLoaded", () => {
       fetchSecuritySummary();
     }
   }, 60000);
-
 });
-
-function exportHeatmapCSV() {
-  if (!window.lastHeatmapData) {
-    alert('Please generate the heatmap first.');
-    return;
-  }
-  let csv = 'Area,Sales,TopCategories\n';
-  window.lastHeatmapData.forEach(entry => {
-    const cats = '"' + entry.topCategories.join(';') + '"';
-    csv += `${entry.areaCode},${entry.totalSales},${cats}\n`;
-  });
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `heatmap_week_${document.getElementById('weekSelector').value}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-

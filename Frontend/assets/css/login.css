@@ -1,0 +1,64 @@
+/* ====== LOGIN PAGE ====== */
+
+/* Login Panel Styling */
+#login.panel {
+  padding: 2em;
+  max-width: 600px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+#login.panel header h2 {
+  color: #003366;
+  margin-bottom: 10px;
+}
+
+#login.panel header p {
+  color: #555;
+  margin-bottom: 20px;
+}
+
+/* Form Inputs */
+#login.panel form input[type="text"],
+#login.panel form input[type="password"] {
+  width: 100%;
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 15px;
+  font-size: 1em;
+}
+
+/* Login Button */
+#login.panel form input[type="submit"] {
+  width: 100%;
+  background-color: #003366;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#login.panel form input[type="submit"]:hover {
+  background-color: #004080;
+}
+
+/* Login Result Message */
+#loginResult {
+  margin-top: 15px;
+  font-weight: bold;
+  color: #d9534f;
+}
+
+/* Responsive Styling */
+@media screen and (max-width: 736px) {
+  #login.panel {
+    padding: 1.5em;
+  }
+}

@@ -1,0 +1,57 @@
+/* ====== ADD PRODUCT PAGE ====== */
+
+#addproduct.panel {
+  padding: 2em;
+}
+
+#addproduct.panel header h2 {
+  color: #003366;
+  margin-bottom: 8px;
+}
+
+#addproduct.panel header p {
+  color: #555;
+  margin-bottom: 20px;
+}
+
+/* Form Inputs */
+#addproduct.panel form input[type="text"],
+#addproduct.panel form input[type="number"] {
+  width: 100%;
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 15px;
+  font-size: 1em;
+}
+
+/* Submit Button */
+#addproduct.panel form input[type="submit"] {
+  width: 100%;
+  background-color: #003366;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#addproduct.panel form input[type="submit"]:hover {
+  background-color: #004080;
+}
+
+/* Add Product Result Message */
+#addProductResult {
+  margin-top: 15px;
+  font-weight: bold;
+  color: #28a745; /* green for success messages */
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 736px) {
+  #addproduct.panel {
+    padding: 1.5em;
+  }
+}

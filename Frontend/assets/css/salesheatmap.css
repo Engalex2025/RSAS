@@ -1,0 +1,112 @@
+/* ====== SALES HEATMAP PAGE ====== */
+
+#salesheatmap.panel {
+  padding: 2em;
+}
+
+#salesheatmap.panel header h2 {
+  color: #003366;
+  margin-bottom: 8px;
+}
+
+#salesheatmap.panel header p {
+  color: #555;
+  margin-bottom: 20px;
+}
+
+/* Form & Select styling */
+#heatmapForm {
+  margin-bottom: 20px;
+}
+
+.select-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.select-wrapper select {
+  border: 2px solid #003366;
+  border-radius: 4px;
+  padding: 0.6em 1em;
+  background-color: #fff;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width='10'%20height='6'%20viewBox='0%200%2010%206'%20xmlns='http://www.w3.org/2000/svg'%3E%3Cpath%20d='M0%200l5%206%205-6z'%20fill='%23003366'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: calc(100% - 0.5rem) center;
+  cursor: pointer;
+}
+
+/* Buttons */
+#salesheatmap.panel input[type="submit"],
+#salesheatmap.panel .button {
+  padding: 0.6em 1.4em;
+  border-radius: 25px;
+  background-color: #003366;
+  color: white;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#salesheatmap.panel input[type="submit"]:hover,
+#salesheatmap.panel .button:hover {
+  background-color: #004080;
+}
+
+/* Output Containers */
+#heatmapOutput,
+#relocationOutput {
+  padding: 1em;
+  background-color: #f8f8f8;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  margin-top: 15px;
+}
+
+/* Headings inside output containers */
+#heatmapOutput h3,
+#relocationOutput h3 {
+  color: #006699;
+  margin-bottom: 10px;
+}
+
+/* Canvas (Chart.js) styling */
+#salesChart {
+  margin-top: 30px;
+  max-width: 100%;
+}
+
+/* Relocation Suggestions List */
+#relocationOutput ul {
+  list-style: disc inside;
+  padding-left: 1rem;
+  margin: 0;
+}
+
+#relocationOutput li {
+  margin-bottom: 0.5rem;
+}
+
+/* Download Report Button */
+#downloadReportBtn {
+  display: inline-block;
+  margin-bottom: 20px;
+  text-decoration: none;
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 736px) {
+  #heatmapForm .row {
+    display: block;
+  }
+
+  .select-wrapper,
+  #salesheatmap.panel input[type="submit"],
+  #downloadReportBtn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}

@@ -1,0 +1,88 @@
+/* ====== INVENTORY REFILL PAGE ====== */
+
+/* Inventory Panel */
+#inventory.panel {
+  padding: 2em;
+}
+
+#inventory.panel header h2 {
+  color: #003366;
+  margin-bottom: 8px;
+}
+
+#inventory.panel header p {
+  color: #555;
+  margin-bottom: 20px;
+}
+
+/* Inventory Actions (Blocks) */
+.inventory-action {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+.inventory-action h3 {
+  margin-bottom: 0.75em;
+  font-size: 1.2em;
+  color: #003366;
+}
+
+/* Inputs and Buttons Styling */
+.inventory-action input[type="text"],
+.inventory-action input[type="number"] {
+  padding: 0.6em 0.8em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 8em;
+  margin-right: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.inventory-action button,
+#inventory.panel button {
+  padding: 0.6em 1.2em;
+  background-color: #003366;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.inventory-action button:hover,
+#inventory.panel button:hover {
+  background-color: #004080;
+}
+
+/* Results and Notifications */
+.inventory-action > div {
+  margin-top: 0.75em;
+  color: #333;
+}
+
+.inventory-action .low-stock {
+  color: #d9534f;
+  font-weight: bold;
+}
+
+#notifyPurchasingResult {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 8px;
+  background: #fafafa;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 736px) {
+  .inventory-action input,
+  .inventory-action button {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+}
