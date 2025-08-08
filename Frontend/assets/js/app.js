@@ -1,6 +1,3 @@
-// assets/js/app.js
-// Central UI logic for all pages. Safe-guards for missing elements.
-// All API calls include Authorization using authHeaders() from auth.js.
 
 const API_BASE = "http://localhost:8080";
 
@@ -9,11 +6,9 @@ const API = {
     getPrice: (productId) => `${API_BASE}/api/pricing/price?productId=${encodeURIComponent(productId)}`,
     autoAdjust: `${API_BASE}/api/pricing/auto-adjust`,
     historyAll: `${API_BASE}/api/pricing/history`,
-    // If your backend uses query param instead of path, swap the line below accordingly.
     historyByProduct: (productId) => `${API_BASE}/api/pricing/history/${encodeURIComponent(productId)}`
   },
   inventory: {
-    // Backend expects @RequestParam productId (no JSON body)
     manualRefill: `${API_BASE}/api/inventory/manual-refill`,
     requestReplenishment: (productId, quantity) =>
       `${API_BASE}/api/inventory/request-replenishment?productId=${encodeURIComponent(productId)}&quantity=${encodeURIComponent(quantity)}`,
@@ -36,9 +31,9 @@ const API = {
   }
 };
 
-// -------------------------------
+// 
 // Small DOM helpers
-// -------------------------------
+//
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
@@ -69,9 +64,9 @@ function downloadBlob(blob, filename) {
   }, 0);
 }
 
-// -------------------------------
+// 
 // SMART PRICING PAGE
-// -------------------------------
+// 
 (function initSmartPricing() {
   const formGet = $("#smartPricingForm");
   const productIdInput = $("#productId");
@@ -155,9 +150,9 @@ function downloadBlob(blob, filename) {
   }
 })();
 
-// -------------------------------
+// 
 // INVENTORY PAGE
-// -------------------------------
+//
 (function initInventory() {
   const btnManual = $("#btnManualRefill");
   const manualInput = $("#manualProductId");
@@ -231,15 +226,9 @@ function downloadBlob(blob, filename) {
   }
 })();
 
-// -------------------------------
+//
 // SALES HEATMAP PAGE
-// -------------------------------
-// -------------------------------
-// SALES HEATMAP PAGE (robust)
-// -------------------------------
-// -------------------------------
-// SALES HEATMAP PAGE (robust + rAF + auto submit)
-// -------------------------------
+// 
 (function initSalesHeatmap() {
   const form = $("#heatmapForm");
   const weekSel = $("#weekSelector");
@@ -299,12 +288,12 @@ function downloadBlob(blob, filename) {
         else setHTML(outReloc, "<em>No relocation suggestions for this week.</em>");
       }
 
-      // Draw chart (wait one frame so CSS/layout settle)
+      // Draw chart
       if (!chartCanvas) return;
       if (typeof Chart === "undefined") { console.warn("Chart.js not found on page."); return; }
       if (!Array.isArray(heat) || !heat.length) { console.warn("No heatmap array to plot."); return; }
 
-      await new Promise(requestAnimationFrame); // <-- key trick
+      await new Promise(requestAnimationFrame);
       const rect = chartCanvas.getBoundingClientRect();
       console.log("Canvas size before draw:", rect.width, rect.height);
 
@@ -327,15 +316,15 @@ function downloadBlob(blob, filename) {
     }
   });
 
-  // Auto-submit on load so you see the chart without clicking
+  
   document.addEventListener("DOMContentLoaded", () => {
     form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
   });
 })();
 
-// -------------------------------
+// 
 // SECURITY PAGE
-// -------------------------------
+// 
 (function initSecurity() {
   const btnLoad = $("#btnLoadSecurity");
   const btnSummary = $("#btnLoadSummary");
@@ -369,9 +358,9 @@ function downloadBlob(blob, filename) {
   }
 })();
 
-// -------------------------------
+// 
 // ADD PRODUCT PAGE
-// -------------------------------
+// 
 (function initAddProduct() {
   const form = $("#addProductForm");
   const resultBox = $("#addProductResult");
@@ -410,9 +399,9 @@ function downloadBlob(blob, filename) {
   }
 })();
 
-// -------------------------------
+// 
 // Active nav based on current page
-// -------------------------------
+//
 (function setActiveNav() {
   const links = document.querySelectorAll('#nav a');
   if (!links.length) return;
