@@ -1,539 +1,398 @@
-// ==============================
-// AUTH HELPERS
-// ==============================
-function getAuthHeaders() {
-  const token = localStorage.getItem("jwtToken");
-  return {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`
-  };
+// assets/js/app.js
+// Central UI logic for all pages. Safe-guards for missing elements.
+// All API calls include Authorization using authHeaders() from auth.js.
+
+// -------------------------------
+// API endpoints (adjust if needed)
+// -------------------------------
+const API = {
+  pricing: {
+    getPrice: (productId) => `/api/pricing/price?productId=${encodeURIComponent(productId)}`,
+    autoAdjust: `/api/pricing/auto-adjust`,
+    historyAll: `/api/pricing/history`,
+    historyByProduct: (productId) => `/api/pricing/history/${encodeURIComponent(productId)}`
+    // If your backend uses query param instead of path:
+    // historyByProduct: (productId) => `/api/pricing/history?productId=${encodeURIComponent(productId)}`
+  },
+  inventory: {
+    manualRefill: `/api/inventory/refill`, // expects { productId }
+    restockHistory: (productId) => `/api/inventory/restocks?productId=${encodeURIComponent(productId)}`,
+    recentRestocks: `/api/inventory/restocks/recent`,
+    notifyPurchasing: `/api/inventory/purchasing/notifications`,
+    exportCsv: `/api/inventory/export/csv`
+  },
+  sales: {
+    heatmap: (week) => `/api/sales/heatmap?week=${encodeURIComponent(week)}`,
+    report4WeekAverage: `/api/sales/heatmap/report/4-week-average` // returns .docx
+  },
+  security: {
+    alerts: `/api/security/alerts`,
+    summary: `/api/security/summary`
+  },
+  products: {
+    add: `/api/products`
+  }
+};
+
+// -------------------------------
+// Small DOM helpers
+// -------------------------------
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+function setHTML(el, html) {
+  if (!el) return;
+  el.innerHTML = html;
 }
 
-// ==============================
-// ANIMATION HELPERS
-// ==============================
-function applyAnimation(element) {
-  element.classList.remove("show-animation");
-  void element.offsetWidth;
-  element.classList.add("show-animation");
-
-  const table = element.querySelector("table");
-  if (table) {
-    table.classList.add("animate-columns");
-    table.querySelectorAll("th, td").forEach((cell, i) => {
-      cell.style.animationDelay = `${i * 0.05}s`;
-    });
-  }
+function setPreJSON(el, data) {
+  if (!el) return;
+  const json = (typeof data === "string") ? data : JSON.stringify(data, null, 2);
+  el.innerHTML = ""; // clear
+  const pre = document.createElement("pre");
+  pre.textContent = json; // safe
+  el.appendChild(pre);
 }
 
-// ==============================
-// DOM LOADED EVENT
-// ==============================
-document.addEventListener("DOMContentLoaded", () => {
-
-  // ==============================
-  // LOGIN
-  // ==============================
-  document.getElementById("loginForm")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const resultDiv = document.getElementById("loginResult");
-    resultDiv.innerHTML = "Processing...";
-
-    fetch("http://localhost:8080/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    })
-      .then(res => {
-        if (!res.ok) {
-          localStorage.removeItem("jwtToken");
-          throw new Error("Invalid credentials.");
-        }
-        return res.json();
-      })
-      .then(data => {
-        localStorage.setItem("jwtToken", data.token);
-        resultDiv.innerHTML = `<p style="color: green;"><strong>Login successful!</strong></p>`;
-      })
-      .catch(err => {
-        resultDiv.innerHTML = `<p class="error">${err.message}</p>`;
-      });
-  });
-
-  // ==============================
-  // SMART PRICING - GET PRICE
-  // ==============================
-  document.getElementById("smartPricingForm")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const productId = document.getElementById("productId").value.trim();
-    const resultDiv = document.getElementById("priceResult");
-    resultDiv.innerHTML = "Loading...";
-
-    fetch(`http://localhost:8080/api/pricing/price?productId=${productId}`, {
-      headers: getAuthHeaders()
-    })
-      .then(res => {
-        if (res.status === 403) throw new Error("Access denied. Please login again.");
-        if (!res.ok) throw new Error("Product not found.");
-        return res.json();
-      })
-      .then(data => {
-        resultDiv.innerHTML = `
-          <h3>Product Information</h3>
-          <p><strong>Product:</strong> ${data.productName || "N/A"} (${data.productId || productId})</p>
-          <p><strong>Current Price:</strong> €${typeof data.currentPrice === "number" ? data.currentPrice.toFixed(2) : "N/A"}</p>
-          <p><strong>Area:</strong> ${data.area || "N/A"}</p>
-        `;
-        applyAnimation(resultDiv);
-      })
-      .catch(err => {
-        resultDiv.innerHTML = `<p class='error'>${err.message}</p>`;
-        applyAnimation(resultDiv);
-      });
-  });
-
-  // ==============================
-  // SMART PRICING - AUTO ADJUST
-  // ==============================
-  document.getElementById("autoAdjustForm")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const productId = document.getElementById("autoAdjustProductId").value.trim();
-    const resultDiv = document.getElementById("autoAdjustResult");
-    resultDiv.innerHTML = "Processing automatic adjustment...";
-
-    fetch(`http://localhost:8080/api/pricing/auto-adjust?productId=${productId}`, {
-      method: "POST",
-      headers: getAuthHeaders()
-    })
-      .then(res => {
-        if (res.status === 403) throw new Error("Access denied. Please login again.");
-        if (!res.ok) throw new Error("Product not found or adjustment failed.");
-        return res.json();
-      })
-      .then(data => {
-        resultDiv.innerHTML = `
-          <h3>Automatic Price Adjustment</h3>
-          <p><strong>Product:</strong> ${data.productName || "N/A"} (${data.productId || productId})</p>
-          <p><strong>Original Price:</strong> €${Number(data.originalPrice ?? 0).toFixed(2)}</p>
-          <p><strong>New Price:</strong> €${Number(data.adjustedPrice ?? 0).toFixed(2)}</p>
-          <p><strong>Reason:</strong> ${data.adjustmentReason || "N/A"}</p>
-          <p><strong>Area:</strong> ${data.area || "N/A"}</p>
-          <p><strong>Recommendation:</strong> ${data.recommendation || "N/A"}</p>
-        `;
-        applyAnimation(resultDiv);
-      })
-      .catch(err => {
-        resultDiv.innerHTML = `<p class='error'>${err.message}</p>`;
-        applyAnimation(resultDiv);
-      });
-  });
-  // ==============================
-  // SMART PRICING - HISTORY ALL
-  // ==============================
-  document.getElementById("loadHistoryAll")?.addEventListener("click", () => {
-    const historyDiv = document.getElementById("historyAllResult");
-    historyDiv.innerHTML = "Loading...";
-
-    fetch("http://localhost:8080/api/pricing/history", {
-      headers: getAuthHeaders()
-    })
-      .then(res => {
-        if (res.status === 403) throw new Error("Access denied. Please login again.");
-        if (!res.ok) throw new Error("Could not fetch price history.");
-        return res.json();
-      })
-      .then(data => {
-        if (!Array.isArray(data) || data.length === 0) {
-          historyDiv.innerHTML = "<p>No price history found.</p>";
-        } else {
-          let html = "<table><tr><th>Product</th><th>Old Price</th><th>New Price</th><th>User</th><th>Date</th></tr>";
-          data.forEach(entry => {
-            html += `
-              <tr>
-                <td>${entry.product_name} (${entry.product_id})</td>
-                <td>€${Number(entry.old_price ?? 0).toFixed(2)}</td>
-                <td>€${Number(entry.new_price ?? 0).toFixed(2)}</td>
-                <td>${entry.updated_by}</td>
-                <td>${entry.update_time}</td>
-              </tr>
-            `;
-          });
-          html += "</table>";
-          historyDiv.innerHTML = html;
-        }
-        applyAnimation(historyDiv);
-      })
-      .catch(err => {
-        historyDiv.innerHTML = `<p class='error'>${err.message}</p>`;
-        applyAnimation(historyDiv);
-      });
-  });
-
-  // ==============================
-  // SMART PRICING - HISTORY BY PRODUCT
-  // ==============================
-  document.getElementById("historyByProductForm")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const productId = document.getElementById("historyProductId").value.trim();
-    const historyDiv = document.getElementById("historyProductResult");
-    historyDiv.innerHTML = "Loading...";
-
-    fetch(`http://localhost:8080/api/pricing/history?productId=${productId}`, {
-      headers: getAuthHeaders()
-    })
-      .then(res => {
-        if (res.status === 403) throw new Error("Access denied. Please login again.");
-        if (!res.ok) throw new Error("Could not fetch product history.");
-        return res.json();
-      })
-      .then(data => {
-        if (!Array.isArray(data) || data.length === 0) {
-          historyDiv.innerHTML = `<p>No price history found for ${productId}.</p>`;
-        } else {
-          let html = "<table><tr><th>Old Price</th><th>New Price</th><th>User</th><th>Date</th></tr>";
-          data.forEach(entry => {
-            html += `
-              <tr>
-                <td>€${Number(entry.old_price ?? 0).toFixed(2)}</td>
-                <td>€${Number(entry.new_price ?? 0).toFixed(2)}</td>
-                <td>${entry.updated_by}</td>
-                <td>${entry.update_time}</td>
-              </tr>
-            `;
-          });
-          html += "</table>";
-          historyDiv.innerHTML = html;
-        }
-        applyAnimation(historyDiv);
-      })
-      .catch(err => {
-        historyDiv.innerHTML = `<p class='error'>${err.message}</p>`;
-        applyAnimation(historyDiv);
-      });
-  });
-
-  // ==============================
-  // INVENTORY - MANUAL REFILL
-  // ==============================
-  document.getElementById("btnManualRefill")?.addEventListener("click", () => {
-    const productId = document.getElementById("manualProductId").value.trim();
-    const result = document.getElementById("manualRefillResult");
-    result.innerHTML = "Processing...";
-
-    fetch(`http://localhost:8080/api/inventory/manual-refill?productId=${productId}`, {
-      method: "POST",
-      headers: getAuthHeaders()
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Manual refill failed.");
-        return res.text();
-      })
-      .then(msg => result.innerHTML = `<p style="color:green;">${msg}</p>`)
-      .catch(err => result.innerHTML = `<p class="error">${err.message}</p>`);
-  });
-
-  // ==============================
-  // INVENTORY - REQUEST REPLENISHMENT
-  // ==============================
-  document.getElementById("btnRequestRepl")?.addEventListener("click", () => {
-    const productId = document.getElementById("reqProductId").value.trim();
-    const quantity = Number(document.getElementById("reqQuantity").value);
-    const result = document.getElementById("requestReplResult");
-    result.innerHTML = "Processing...";
-
-    fetch(`http://localhost:8080/api/inventory/request-replenishment?productId=${productId}&quantity=${quantity}`, {
-      method: "POST",
-      headers: getAuthHeaders()
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Request replenishment failed.");
-        return res.text();
-      })
-      .then(msg => result.innerHTML = `<p style="color:green;">${msg}</p>`)
-      .catch(err => result.innerHTML = `<p class="error">${err.message}</p>`);
-  });
-
-  // ==============================
-  // INVENTORY - RESTOCK HISTORY
-  // ==============================
-  document.getElementById("btnRestockHist")?.addEventListener("click", () => {
-    const productId = document.getElementById("histProductId").value.trim();
-    const resultDiv = document.getElementById("restockHistoryResult");
-    resultDiv.innerHTML = "Loading history…";
-
-    fetch(`http://localhost:8080/api/inventory/restock-history?productId=${productId}`, {
-      headers: getAuthHeaders()
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Could not fetch history.");
-        return res.json();
-      })
-      .then(data => {
-        renderRestockHistory(data);
-      })
-      .catch(err => {
-        resultDiv.innerHTML = `<p class="error">${err.message}</p>`;
-      });
-
-    function renderRestockHistory(data) {
-      const result = document.getElementById("restockHistoryResult");
-
-      if (!Array.isArray(data) || data.length === 0) {
-        result.innerHTML = "<p>No history found.</p>";
-        return;
-      }
-
-      let html = "<ul>";
-      data.forEach(log => {
-        const pid = log.product.productId || log.product.id;
-        const qty = log.quantityAdded;
-        const ts = new Date(log.timestamp).toLocaleString();
-        html += `<li>${pid} – ${qty} units on ${ts}</li>`;
-      });
-      html += "</ul>";
-      result.innerHTML = html;
-    }
-  });
-  // ==============================
-  // INVENTORY - RECENT RESTOCKS
-  // ==============================
-  document.getElementById("btnRecentRestocks")?.addEventListener("click", () => {
-    const resultDiv = document.getElementById("recentRestocksResult");
-    resultDiv.innerHTML = "Loading recent restocks…";
-
-    fetch("http://localhost:8080/api/inventory/recent-restocks", {
-      headers: getAuthHeaders()
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Could not load recent restocks.");
-        return res.json();
-      })
-      .then(data => {
-        renderRecentRestocks(data);
-      })
-      .catch(err => {
-        resultDiv.innerHTML = `<p class="error">${err.message}</p>`;
-      });
-
-    function renderRecentRestocks(data) {
-      const result = document.getElementById("recentRestocksResult");
-      if (!Array.isArray(data) || data.length === 0) {
-        result.innerHTML = "<p>No recent restocks.</p>";
-        return;
-      }
-
-      let html = "<ul>";
-      data.forEach(item => {
-        const pid = item.productId || (item.product && item.product.productId);
-        const qty = item.quantity || item.quantityAdded;
-        const ts = new Date(item.timestamp).toLocaleString();
-        html += `<li>${pid} – Restocked ${qty} units on ${ts}</li>`;
-      });
-      html += "</ul>";
-      result.innerHTML = html;
-    }
-  });
-
-  // ==============================
-  // INVENTORY - PURCHASING NOTIFICATIONS
-  // ==============================
-  function loadPurchasingNotifications() {
-    const container = document.getElementById("notifyPurchasingResult");
-    container.innerHTML = "Loading inventory alerts…";
-
-    fetch("http://localhost:8080/api/inventory/scheduled-alerts", {
-      headers: getAuthHeaders()
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to load scheduled alerts.");
-        return res.json();
-      })
-      .then(alerts => {
-        container.innerHTML = "";
-        if (!Array.isArray(alerts) || alerts.length === 0) {
-          container.innerHTML = "<p>No inventory alerts at this time.</p>";
-          return;
-        }
-        let html = '<ul class="notifications">';
-        alerts.forEach(msg => {
-          html += `<li>${msg}</li>`;
-        });
-        html += "</ul>";
-        container.innerHTML = html;
-        container.scrollTop = container.scrollHeight;
-      })
-      .catch(err => {
-        container.innerHTML = `<p class="error">${err.message}</p>`;
-      });
-  }
-
-  // ==============================
-  // SALES HEATMAP
-  // ==============================
-  document.getElementById("heatmapForm")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const week = document.getElementById("weekSelector").value;
-    const url = `http://localhost:8080/api/sales/heatmap?week=${week}`;
-    const output = document.getElementById("heatmapOutput");
-    const suggestions = document.getElementById("relocationOutput");
-    const ctx = document.getElementById("salesChart").getContext("2d");
-    output.innerHTML = "Loading...";
-    suggestions.innerHTML = "";
-
-    try {
-      const res = await fetch(url, { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const dto = await res.json();
-
-      let table = `
-        <table class="styled-table">
-          <thead>
-            <tr><th>Area</th><th>Sales (€)</th><th>Top Categories</th></tr>
-          </thead>
-          <tbody>
-      `;
-      dto.heatmap.forEach(h => {
-        table += `
-          <tr>
-            <td>${h.areaCode}</td>
-            <td>€${h.totalSales}</td>
-            <td>${h.topCategories.join(", ")}</td>
-          </tr>
-        `;
-      });
-      table += "</tbody></table>";
-      output.innerHTML = table;
-      applyAnimation(output);
-
-      if (dto.relocationSuggestions.length) {
-        let ul = "<h3>Relocation Suggestions</h3><ul>";
-        dto.relocationSuggestions.forEach(s => {
-          ul += `
-            <li>
-              Move <strong>${s.productName}</strong> (${s.productId})
-              from <em>${s.fromArea}</em> to <em>${s.toArea}</em>: ${s.reason}
-            </li>
-          `;
-        });
-        ul += "</ul>";
-        suggestions.innerHTML = ul;
-        applyAnimation(suggestions);
-      }
-
-      if (window.salesChartInstance) window.salesChartInstance.destroy();
-      const labels = dto.heatmap.map(h => h.areaCode);
-      const values = dto.heatmap.map(h => h.totalSales);
-      window.salesChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: { labels, datasets: [{ label: `Week ${week} Sales`, data: values }] },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
-      });
-
-      window.lastHeatmapData = dto.heatmap;
-    } catch (err) {
-      output.innerHTML = `<p class="error">Error loading heatmap: ${err.message}</p>`;
-    }
-  });
-
-  // ==============================
-  // EXPORT HEATMAP CSV
-  // ==============================
-  function exportHeatmapCSV() {
-    if (!window.lastHeatmapData) {
-      alert('Please generate the heatmap first.');
-      return;
-    }
-    let csv = 'Area,Sales,TopCategories\n';
-    window.lastHeatmapData.forEach(entry => {
-      const cats = '"' + entry.topCategories.join(';') + '"';
-      csv += `${entry.areaCode},${entry.totalSales},${cats}\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `heatmap_week_${document.getElementById('weekSelector').value}.csv`;
-    document.body.appendChild(a);
-    a.click();
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }, 0);
+}
+
+// -------------------------------
+// SMART PRICING PAGE
+// -------------------------------
+(function initSmartPricing() {
+  const formGet = $("#smartPricingForm");
+  const productIdInput = $("#productId");
+  const priceResult = $("#priceResult");
+
+  if (formGet && productIdInput && priceResult) {
+    formGet.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const pid = productIdInput.value.trim();
+      if (!pid) return setHTML(priceResult, "Please provide a Product ID.");
+
+      setHTML(priceResult, "Loading...");
+      const resp = await fetch(API.pricing.getPrice(pid), { headers: authHeaders() });
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(priceResult, err || "Request failed.");
+      }
+      const data = await resp.json();
+      setPreJSON(priceResult, data);
+    });
   }
 
-  // ==============================
-  // SECURITY MONITOR
-  // ==============================
-  async function fetchSecurityAlerts() {
-    const out = document.getElementById("securityOutput");
-    out.innerHTML = "Loading alerts…";
-    try {
-      const res = await fetch("http://localhost:8080/api/security/alerts", { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const alerts = await res.json();
-      if (!alerts.length) {
-        out.innerHTML = "<p>No alerts at this time.</p>";
+  const autoForm = $("#autoAdjustForm");
+  const autoPid = $("#autoAdjustProductId");
+  const autoResult = $("#autoAdjustResult");
+
+  if (autoForm && autoPid && autoResult) {
+    autoForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const pid = autoPid.value.trim();
+      if (!pid) return setHTML(autoResult, "Please provide a Product ID.");
+
+      setHTML(autoResult, "Adjusting...");
+      const resp = await fetch(API.pricing.autoAdjust, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ productId: pid })
+      });
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(autoResult, err || "Request failed.");
+      }
+      const data = await resp.json();
+      setPreJSON(autoResult, data);
+    });
+  }
+
+  const btnHistAll = $("#loadHistoryAll");
+  const histAllResult = $("#historyAllResult");
+  if (btnHistAll && histAllResult) {
+    btnHistAll.addEventListener("click", async () => {
+      setHTML(histAllResult, "Loading history...");
+      const resp = await fetch(API.pricing.historyAll, { headers: authHeaders() });
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(histAllResult, err || "Request failed.");
+      }
+      const data = await resp.json();
+      setPreJSON(histAllResult, data);
+    });
+  }
+
+  const histByForm = $("#historyByProductForm");
+  const histPid = $("#historyProductId");
+  const histProductResult = $("#historyProductResult");
+  if (histByForm && histPid && histProductResult) {
+    histByForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const pid = histPid.value.trim();
+      if (!pid) return setHTML(histProductResult, "Please provide a Product ID.");
+
+      setHTML(histProductResult, "Loading product history...");
+      const resp = await fetch(API.pricing.historyByProduct(pid), { headers: authHeaders() });
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(histProductResult, err || "Request failed.");
+      }
+      const data = await resp.json();
+      setPreJSON(histProductResult, data);
+    });
+  }
+})();
+
+// -------------------------------
+// INVENTORY PAGE
+// -------------------------------
+(function initInventory() {
+  const btnManual = $("#btnManualRefill");
+  const manualInput = $("#manualProductId");
+  const manualResult = $("#manualRefillResult");
+
+  if (btnManual && manualInput && manualResult) {
+    btnManual.addEventListener("click", async () => {
+      const pid = manualInput.value.trim();
+      if (!pid) return setHTML(manualResult, "Please provide a Product ID.");
+      setHTML(manualResult, "Processing...");
+      const resp = await fetch(API.inventory.manualRefill, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ productId: pid })
+      });
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(manualResult, err || "Request failed.");
+      }
+      const data = await resp.json();
+      setPreJSON(manualResult, data);
+    });
+  }
+
+  const btnHist = $("#btnRestockHist");
+  const histInput = $("#histProductId");
+  const histResult = $("#restockHistoryResult");
+  if (btnHist && histInput && histResult) {
+    btnHist.addEventListener("click", async () => {
+      const pid = histInput.value.trim();
+      if (!pid) return setHTML(histResult, "Please provide a Product ID.");
+      setHTML(histResult, "Loading history...");
+      const resp = await fetch(API.inventory.restockHistory(pid), { headers: authHeaders() });
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(histResult, err || "Request failed.");
+      }
+      const data = await resp.json();
+      setPreJSON(histResult, data);
+    });
+  }
+
+  const btnRecent = $("#btnRecentRestocks");
+  const recentResult = $("#recentRestocksResult");
+  if (btnRecent && recentResult) {
+    btnRecent.addEventListener("click", async () => {
+      setHTML(recentResult, "Loading recent restocks...");
+      const resp = await fetch(API.inventory.recentRestocks, { headers: authHeaders() });
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(recentResult, err || "Request failed.");
+      }
+      const data = await resp.json();
+      setPreJSON(recentResult, data);
+    });
+  }
+
+  const notifyResult = $("#notifyPurchasingResult");
+  if (notifyResult) {
+    // Auto-load list when inventory page opens
+    (async () => {
+      setHTML(notifyResult, "Loading notifications...");
+      const resp = await fetch(API.inventory.notifyPurchasing, { headers: authHeaders() });
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(notifyResult, err || "Request failed.");
+      }
+      const data = await resp.json();
+      setPreJSON(notifyResult, data);
+    })();
+  }
+
+  // Export CSV function (called by onclick="exportInventoryCSV()")
+  if (typeof window !== "undefined") {
+    window.exportInventoryCSV = async function () {
+      const resp = await fetch(API.inventory.exportCsv, { headers: authHeaders() });
+      if (!resp.ok) {
+        const msg = await resp.text();
+        return alert(msg || "Export failed."); // ok to use alert here as a quick feedback
+      }
+      const blob = await resp.blob();
+      downloadBlob(blob, "inventory.csv");
+    };
+  }
+})();
+
+// -------------------------------
+// SALES HEATMAP PAGE
+// -------------------------------
+(function initSalesHeatmap() {
+  const form = $("#heatmapForm");
+  const weekSel = $("#weekSelector");
+  const outHeatmap = $("#heatmapOutput");
+  const outReloc = $("#relocationOutput");
+  const chartCanvas = $("#salesChart");
+  const btnReport = $("#downloadReportBtn");
+
+  let chartRef = null;
+
+  if (btnReport) {
+    btnReport.addEventListener("click", async () => {
+      btnReport.textContent = "Preparing report...";
+      const resp = await fetch(API.sales.report4WeekAverage, { headers: authHeaders() });
+      btnReport.textContent = "Download 4-Week Average Report (.docx)";
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(outHeatmap || outReloc, err || "Report download failed.");
+      }
+      const blob = await resp.blob();
+      downloadBlob(blob, "Sales_Heatmap_Report_4_Week_Average.docx");
+    });
+  }
+
+  if (form && weekSel) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const week = weekSel.value;
+      if (outHeatmap) setHTML(outHeatmap, "Loading heatmap...");
+      if (outReloc) setHTML(outReloc, "");
+
+      const resp = await fetch(API.sales.heatmap(week), { headers: authHeaders() });
+      if (!resp.ok) {
+        const err = await resp.text();
+        if (outHeatmap) setPreJSON(outHeatmap, err || "Request failed.");
         return;
       }
-      let html = "<ul class='notifications'>";
-      alerts.forEach(a => {
-        const lvl = a.level ?? "UNKNOWN";
-        const msg = a.description ?? "–";
-        const area = a.area ?? "–";
-        const time = a.timestamp
-          ? new Date(a.timestamp).toLocaleString()
-          : "Invalid Date";
-        html += `
-        <li>
-          <strong>[${lvl}]</strong> ${msg}
-          <br/><small>${time} — ${area}</small>
-        </li>`;
-      });
-      html += "</ul>";
-      out.innerHTML = html;
-      applyAnimation(out);
-    } catch (err) {
-      out.innerHTML = `<p class="error">Error loading alerts: ${err.message}</p>`;
-      applyAnimation(out);
-    }
-  }
+      const data = await resp.json();
 
-  async function fetchSecuritySummary() {
-    const out = document.getElementById("securitySummary");
-    out.innerHTML = "Loading summary…";
-    try {
-      const res = await fetch("http://localhost:8080/api/security/summary", {
-        headers: getAuthHeaders()
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const s = await res.json();
-      let html = `
-      <h3>Security Summary</h3>
-      <p><strong>Total Alerts:</strong> ${s.totalAlerts}</p>
-      <p><strong>Average per Day:</strong> ${s.averagePerDay.toFixed(2)}</p>
-      <p><strong>Top Locations:</strong> ${s.topLocations.join(", ")}</p>
-      <h4>Counts by Level:</h4>
-      <ul>
-    `;
-      for (const [level, count] of Object.entries(s.countsByLevel)) {
-        html += `<li>${level}: ${count}</li>`;
+      // Expecting structure like:
+      // { heatmap: [{ areaCode, totalSales, topCategories }...],
+      //   relocationSuggestions: [{ productId, productName, fromArea, toArea, reason }...] }
+      if (outHeatmap) setPreJSON(outHeatmap, data.heatmap || data);
+      if (outReloc) setPreJSON(outReloc, data.relocationSuggestions || []);
+
+      // Draw chart if Chart is available and canvas exists
+      if (chartCanvas && typeof Chart !== "undefined" && data.heatmap && Array.isArray(data.heatmap)) {
+        const labels = data.heatmap.map(x => x.areaCode || x.area || "Area");
+        const values = data.heatmap.map(x => Number(x.totalSales || 0));
+
+        // Destroy previous chart if needed
+        if (chartRef && typeof chartRef.destroy === "function") chartRef.destroy();
+
+        // One chart per page load
+        chartRef = new Chart(chartCanvas.getContext("2d"), {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              label: "Total Sales",
+              data: values
+              // No specific colors or styles as requested
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false
+          }
+        });
       }
-      html += "</ul>";
-      out.innerHTML = html;
-      applyAnimation(out);
-    } catch (err) {
-      out.innerHTML = `<p class="error">Error loading summary: ${err.message}</p>`;
-      applyAnimation(out);
-    }
+    });
+  }
+})();
+
+// -------------------------------
+// SECURITY PAGE
+// -------------------------------
+(function initSecurity() {
+  const btnLoad = $("#btnLoadSecurity");
+  const btnSummary = $("#btnLoadSummary");
+  const outAlerts = $("#securityOutput");
+  const outSummary = $("#securitySummary");
+
+  if (btnLoad && outAlerts) {
+    btnLoad.addEventListener("click", async () => {
+      setHTML(outAlerts, "Loading alerts...");
+      const resp = await fetch(API.security.alerts, { headers: authHeaders() });
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(outAlerts, err || "Request failed.");
+      }
+      const data = await resp.json();
+      setPreJSON(outAlerts, data);
+    });
   }
 
-  document.getElementById("btnLoadSecurity").addEventListener("click", fetchSecurityAlerts);
-  document.getElementById("btnLoadSummary").addEventListener("click", fetchSecuritySummary);
+  if (btnSummary && outSummary) {
+    btnSummary.addEventListener("click", async () => {
+      setHTML(outSummary, "Loading summary...");
+      const resp = await fetch(API.security.summary, { headers: authHeaders() });
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(outSummary, err || "Request failed.");
+      }
+      const data = await resp.json();
+      setPreJSON(outSummary, data);
+    });
+  }
+})();
 
-  setInterval(() => {
-    if (window.location.hash === "#security") {
-      fetchSecurityAlerts();
-      fetchSecuritySummary();
-    }
-  }, 60000);
-});
+// -------------------------------
+// ADD PRODUCT PAGE
+// -------------------------------
+(function initAddProduct() {
+  const form = $("#addProductForm");
+  const resultBox = $("#addProductResult");
+
+  if (form && resultBox) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        productId: $("#newProductId")?.value?.trim(),
+        productName: $("#newProductName")?.value?.trim(),
+        quantity: Number($("#newQuantity")?.value || 0),
+        minQuantity: Number($("#newMinQuantity")?.value || 0),
+        price: Number($("#newPrice")?.value || 0),
+        area: $("#newArea")?.value?.trim() || null
+      };
+
+      // Basic validation
+      if (!payload.productId || !payload.productName) {
+        return setHTML(resultBox, "Product ID and Product Name are required.");
+      }
+
+      setHTML(resultBox, "Saving...");
+      const resp = await fetch(API.products.add, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify(payload)
+      });
+      if (!resp.ok) {
+        const err = await resp.text();
+        return setPreJSON(resultBox, err || "Request failed.");
+      }
+      const data = await resp.json();
+      setPreJSON(resultBox, data);
+      form.reset();
+    });
+  }
+})();

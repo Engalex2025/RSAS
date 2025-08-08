@@ -1,0 +1,106 @@
+<!DOCTYPE HTML>
+<html lang="pt-BR">
+<head>
+  <title>RSAS2 - Login</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- CSS comuns -->
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/custom.css" />
+  <!-- CSS específico -->
+  <link rel="stylesheet" href="assets/css/login.css" />
+
+  <noscript>
+    <link rel="stylesheet" href="assets/css/noscript.css" />
+  </noscript>
+</head>
+
+<body class="is-preload">
+  <div id="wrapper">
+
+    <!-- Nav -->
+    <nav id="nav">
+      <a href="home.html" class="icon solid fa-home"><span>Home</span></a>
+      <a href="login.html" class="icon solid fa-sign-in-alt"><span>Login</span></a>
+      <a href="smartpricing.html" class="icon solid fa-tag"><span>SmartPricing</span></a>
+      <a href="inventory.html" class="icon solid fa-box"><span>Inventory</span></a>
+      <a href="salesheatmap.html" class="icon solid fa-chart-bar"><span>SalesHeatmap</span></a>
+      <a href="security.html" class="icon solid fa-shield-alt"><span>Security</span></a>
+      <a href="addproduct.html" class="icon solid fa-plus"><span>Add Product</span></a>
+    </nav>
+
+    <!-- Main -->
+    <div id="main">
+      <article id="login" class="panel">
+        <header>
+          <h2>Login</h2>
+          <p>Enter your credentials to access the system.</p>
+        </header>
+        <form id="loginForm" autocomplete="on">
+          <div class="row">
+            <div class="col-6 col-12-medium">
+              <input type="text" id="username" placeholder="Username" required />
+            </div>
+            <div class="col-6 col-12-medium">
+              <input type="password" id="password" placeholder="Password" required />
+            </div>
+            <div class="col-12">
+              <input type="submit" value="Login" class="primary" />
+            </div>
+          </div>
+        </form>
+        <div id="loginResult" style="margin-top: 15px;"></div>
+      </article>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer">
+      <div class="footer-content">
+        <div class="footer-about">
+          <h4>RSAS2</h4>
+          <p>Smart Retail Automation System for advanced pricing, inventory, sales, and security monitoring.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="home.html">Home</a></li>
+            <li><a href="smartpricing.html">Smart Pricing</a></li>
+            <li><a href="inventory.html">Inventory Refill</a></li>
+            <li><a href="salesheatmap.html">Sales Heatmap</a></li>
+            <li><a href="security.html">Security Monitor</a></li>
+          </ul>
+        </div>
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <ul>
+            <li>Email: support@rsas2.com</li>
+            <li>Phone: +353 086 456</li>
+            <li>Address: 123 Retail Street, Tech City</li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>&copy; RSAS2. All rights reserved.</p>
+        <p>Design: ALex</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/js/browser.min.js"></script>
+  <script src="assets/js/breakpoints.min.js"></script>
+  <script src="assets/js/util.js"></script>
+  <script src="assets/js/main.js"></script>
+
+  <!-- Auth utils + Login logic -->
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/login.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof redirectIfAuthenticated === 'function') redirectIfAuthenticated();
+    });
+  </script>
+</body>
+</html>

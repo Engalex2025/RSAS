@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html lang="pt-BR">
+<head>
+  <title>RSAS2 - Inventory Refill</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/custom.css" />
+  <link rel="stylesheet" href="assets/css/inventory.css" />
+
+  <noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+</head>
+<body class="is-preload">
+  <div id="wrapper">
+    <nav id="nav">
+      <a href="home.html" class="icon solid fa-home"><span>Home</span></a>
+      <a href="login.html" class="icon solid fa-sign-in-alt"><span>Login</span></a>
+      <a href="smartpricing.html" class="icon solid fa-tag"><span>SmartPricing</span></a>
+      <a href="inventory.html" class="icon solid fa-box"><span>Inventory</span></a>
+      <a href="salesheatmap.html" class="icon solid fa-chart-bar"><span>SalesHeatmap</span></a>
+      <a href="security.html" class="icon solid fa-shield-alt"><span>Security</span></a>
+      <a href="addproduct.html" class="icon solid fa-plus"><span>Add Product</span></a>
+    </nav>
+
+    <div id="main">
+      <article id="inventory" class="panel">
+        <header>
+          <h2>Inventory Refill</h2>
+          <p>Monitor stock levels and alerts.</p>
+        </header>
+
+        <button onclick="exportInventoryCSV()">Export Inventory as CSV</button>
+
+        <div class="inventory-action">
+          <h3>Manual Refill</h3>
+          <input type="text" id="manualProductId" placeholder="Product ID" />
+          <button id="btnManualRefill">Refill</button>
+          <div id="manualRefillResult"></div>
+        </div>
+
+        <div class="inventory-action">
+          <h3>Restock History</h3>
+          <input type="text" id="histProductId" placeholder="Product ID" />
+          <button id="btnRestockHist">Load History</button>
+          <div id="restockHistoryResult"></div>
+        </div>
+
+        <div class="inventory-action">
+          <h3>Recent Restocks</h3>
+          <button id="btnRecentRestocks">Load Recent</button>
+          <div id="recentRestocksResult"></div>
+        </div>
+
+        <div class="inventory-action">
+          <h3>Notify Purchasing</h3>
+          <div id="notifyPurchasingResult" class="notification-list"></div>
+        </div>
+      </article>
+    </div>
+
+    <div  <!-- Footer  -->
+    <div id="footer">
+      <div class="footer-content">
+        <div class="footer-about">
+          <h4>RSAS2</h4>
+          <p>Smart Retail Automation System for advanced pricing, inventory, sales, and security monitoring.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="home.html">Home</a></li>
+            <li><a href="smartpricing.html">Smart Pricing</a></li>
+            <li><a href="inventory.html">Inventory Refill</a></li>
+            <li><a href="salesheatmap.html">Sales Heatmap</a></li>
+            <li><a href="security.html">Security Monitor</a></li>
+          </ul>
+        </div>
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <ul>
+            <li>Email: support@rsas2.com</li>
+            <li>Phone: +353 086 456</li>
+            <li>Address: 123 Retail Street, Tech City</li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>&copy; RSAS2. All rights reserved.</p>
+        <p>Design: ALex</p>
+      </div>
+    </div>
+  </div> </div>
+  </div>
+
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/js/browser.min.js"></script>
+  <script src="assets/js/breakpoints.min.js"></script>
+  <script src="assets/js/util.js"></script>
+  <script src="assets/js/main.js"></script>
+
+  <script src="assets/js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof requireAuth === 'function') requireAuth();
+    });
+  </script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

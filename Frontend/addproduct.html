@@ -1,0 +1,109 @@
+<!DOCTYPE HTML>
+<html lang="pt-BR">
+<head>
+  <title>RSAS2 - Add Product</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/custom.css" />
+  <link rel="stylesheet" href="assets/css/addproduct.css" />
+
+  <noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+</head>
+<body class="is-preload">
+  <div id="wrapper">
+    <nav id="nav">
+      <a href="home.html" class="icon solid fa-home"><span>Home</span></a>
+      <a href="login.html" class="icon solid fa-sign-in-alt"><span>Login</span></a>
+      <a href="smartpricing.html" class="icon solid fa-tag"><span>SmartPricing</span></a>
+      <a href="inventory.html" class="icon solid fa-box"><span>Inventory</span></a>
+      <a href="salesheatmap.html" class="icon solid fa-chart-bar"><span>SalesHeatmap</span></a>
+      <a href="security.html" class="icon solid fa-shield-alt"><span>Security</span></a>
+      <a href="addproduct.html" class="icon solid fa-plus"><span>Add Product</span></a>
+    </nav>
+
+    <div id="main">
+      <article id="addproduct" class="panel">
+        <header>
+          <h2>Add New Product</h2>
+          <p>Fill the form to add a new product to the inventory.</p>
+        </header>
+        <form id="addProductForm">
+          <div class="row">
+            <div class="col-6 col-12-medium">
+              <input type="text" id="newProductId" placeholder="Product ID (e.g. R123)" required />
+            </div>
+            <div class="col-6 col-12-medium">
+              <input type="text" id="newProductName" placeholder="Product Name" required />
+            </div>
+            <div class="col-6 col-12-medium">
+              <input type="number" id="newQuantity" placeholder="Quantity" required />
+            </div>
+            <div class="col-6 col-12-medium">
+              <input type="number" id="newMinQuantity" placeholder="Minimum Quantity" required />
+            </div>
+            <div class="col-6 col-12-medium">
+              <input type="number" id="newPrice" placeholder="Price (e.g. 9.99)" step="0.01" required />
+            </div>
+            <div class="col-6 col-12-medium">
+              <input type="text" id="newArea" placeholder="Area (e.g. A101)" />
+            </div>
+            <div class="col-12">
+              <input type="submit" value="Add Product" class="primary" />
+            </div>
+          </div>
+        </form>
+        <div id="addProductResult" style="margin-top: 15px;"></div>
+      </article>
+    </div>
+
+     <!-- Footer -->
+    <div id="footer">
+      <div class="footer-content">
+        <div class="footer-about">
+          <h4>RSAS2</h4>
+          <p>Smart Retail Automation System for advanced pricing, inventory, sales, and security monitoring.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="home.html">Home</a></li>
+            <li><a href="smartpricing.html">Smart Pricing</a></li>
+            <li><a href="inventory.html">Inventory Refill</a></li>
+            <li><a href="salesheatmap.html">Sales Heatmap</a></li>
+            <li><a href="security.html">Security Monitor</a></li>
+          </ul>
+        </div>
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <ul>
+            <li>Email: support@rsas2.com</li>
+            <li>Phone: +353 086 456</li>
+            <li>Address: 123 Retail Street, Tech City</li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>&copy; RSAS2. All rights reserved.</p>
+        <p>Design: ALex</p>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/js/browser.min.js"></script>
+  <script src="assets/js/breakpoints.min.js"></script>
+  <script src="assets/js/util.js"></script>
+  <script src="assets/js/main.js"></script>
+
+  <script src="assets/js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof requireAuth === 'function') requireAuth();
+    });
+  </script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
