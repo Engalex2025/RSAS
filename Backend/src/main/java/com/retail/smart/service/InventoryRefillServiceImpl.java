@@ -218,7 +218,6 @@ public class InventoryRefillServiceImpl extends InventoryRefillGrpc.InventoryRef
         if (scheduledAlerts.size() > MAX_ALERTS_STORED) {
             scheduledAlerts.removeFirst();
         }
-        // Log the alert to console or any logging system
         System.out.println(msg);
     }
 

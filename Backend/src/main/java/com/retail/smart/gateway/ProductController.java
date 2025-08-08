@@ -12,7 +12,6 @@ public class ProductController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    // Endpoint para adicionar novo produto
     @PostMapping
     public String addProduct(@RequestBody ProductDTO productDTO) {
         String sql = "INSERT INTO products (product_id, name, quantity, minimum_quantity, price) VALUES (?, ?, ?, ?, ?)";
@@ -31,7 +30,7 @@ public class ProductController {
         }
     }
 
-    // Endpoint para atualizar todos os dados de um produto (incluindo area)
+  
     @PutMapping("/{productId}")
     public String updateProduct(@PathVariable String productId, @RequestBody ProductDTO dto) {
         String sql = "UPDATE products SET name = ?, quantity = ?, minimum_quantity = ?, price = ?, area = ? WHERE product_id = ?";
@@ -54,7 +53,6 @@ public class ProductController {
         }
     }
 
-    // Endpoint específico para atualizar apenas a área de um produto
     @PutMapping("/{productId}/area")
     public String updateProductArea(@PathVariable String productId, @RequestParam String area) {
         String sql = "UPDATE products SET area = ? WHERE product_id = ?";

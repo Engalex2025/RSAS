@@ -84,7 +84,7 @@ public ResponseEntity<?> autoAdjustPrice(@RequestParam String productId) {
 
         ProductResponse response = blockingStub.getPrice(request);
 
-        // ✅ Capture the logged-in username
+        //  Capture the logged-in username
         String currentUser = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
                 .map(auth -> auth.getName())
                 .filter(name -> !name.equalsIgnoreCase("anonymousUser"))

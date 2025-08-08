@@ -12,5 +12,5 @@ public interface RestockLogRepository extends JpaRepository<RestockLog, Long> {
 
     List<RestockLog> findByProduct_ProductId(String productId);
 
-    List<RestockLog> findByTimestampAfter(LocalDateTime timestamp); // ✅ Novo método
+    List<RestockLog> findByTimestampAfter(LocalDateTime timestamp); 
 }

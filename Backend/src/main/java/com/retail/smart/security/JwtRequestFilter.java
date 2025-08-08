@@ -47,7 +47,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         // Allow only open endpoints to pass through without token
         if (uri.startsWith("/api/auth") || uri.equals("/ping") || uri.startsWith("/reports/")) {
-            System.out.println("🟢 Public route, skipping JWT validation");
+            System.out.println(" Public route, skipping JWT validation");
             filterChain.doFilter(request, response);
             return;
         }
@@ -71,7 +71,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             System.out.println("Expiration: " + expiration);
 
             if (username == null || expiration.before(new Date())) {
-                System.out.println("❌ Invalid or expired token");
+                System.out.println(" Invalid or expired token");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
@@ -88,10 +88,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             var authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            System.out.println("✅ Authenticated user: " + username);
+            System.out.println(" Authenticated user: " + username);
 
         } catch (Exception e) {
-            System.out.println("❌ Exception while validating token: " + e.getMessage());
+            System.out.println(" Exception while validating token: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }

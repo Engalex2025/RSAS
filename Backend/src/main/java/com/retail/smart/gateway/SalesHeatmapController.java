@@ -27,9 +27,6 @@ public class SalesHeatmapController {
         this.relocationSuggestionRepository = relocationSuggestionRepository;
     }
 
-    /**
-     * Endpoint principal que retorna heatmap + sugestões em um DTO
-     */
     @GetMapping("/api/sales/heatmap")
     public SalesHeatmapDTO getSalesHeatmap(
             @RequestParam(required = false) String category,
@@ -37,9 +34,6 @@ public class SalesHeatmapController {
         return computeFullHeatmap(category, week);
     }
 
-    /**
-     * Novo endpoint: retorna apenas a lista de áreas e vendas
-     */
     @GetMapping("/api/sales/heatmap/areas")
     public List<HeatmapEntry> getHeatmapAreas(
             @RequestParam(required = false) String category,

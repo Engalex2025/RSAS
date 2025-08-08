@@ -121,7 +121,6 @@ public void updatePrice(PriceUpdateRequest request, StreamObserver<PriceUpdateRe
     product.setPrice(newPrice);
     productRepository.save(product);
 
-    // Always use the value provided by the controller
     String updatedByUser = request.getUpdatedBy() != null && !request.getUpdatedBy().isBlank()
             ? request.getUpdatedBy()
             : "unknown";
