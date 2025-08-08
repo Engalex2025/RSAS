@@ -109,4 +109,18 @@
     width: 100%;
     margin-bottom: 10px;
   }
+.chart-wrap {
+  max-width: 2000px;  
+  margin: 24px auto 0; 
+}
+
+#salesChart {
+  width: 100%;
+  height: 400px;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  #salesChart { height: 240px; }
+}
 }

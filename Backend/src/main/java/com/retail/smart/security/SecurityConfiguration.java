@@ -48,12 +48,14 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()      
-                        .requestMatchers("/reports/**").permitAll()      
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/reports/**").permitAll()
+                        .requestMatchers("/api/inventory/**").permitAll() 
                         .requestMatchers("/api/pricing/**").hasRole("ADMIN")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")   
-                        .requestMatchers("/api/**").authenticated()    
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll()
+
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -67,8 +69,7 @@ public class SecurityConfiguration {
         config.setAllowedOrigins(List.of(
                 "http://localhost:8080",
                 "http://127.0.0.1:5500",
-                "http://localhost:5500"
-        ));
+                "http://localhost:5500"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

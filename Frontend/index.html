@@ -1,9 +1,164 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=home.html">
-  <title>Redirecting…</title>
+  <title>RSAS2 - Home</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/custom.css" />
+  <link rel="stylesheet" href="assets/css/home.css" />
+  <noscript>
+    <link rel="stylesheet" href="assets/css/noscript.css" />
+  </noscript>
 </head>
-<body></body>
+
+<body class="is-preload">
+  <div id="wrapper">
+
+    <!-- Nav -->
+    <nav id="nav">
+      <a href="home.html" class="icon solid fa-home"><span>Home</span></a>
+      <a href="login.html" class="icon solid fa-sign-in-alt"><span>Login</span></a>
+      <a href="smartpricing.html" class="icon solid fa-tag"><span>SmartPricing</span></a>
+      <a href="inventory.html" class="icon solid fa-box"><span>Inventory</span></a>
+      <a href="salesheatmap.html" class="icon solid fa-chart-bar"><span>SalesHeatmap</span></a>
+      <a href="security.html" class="icon solid fa-shield-alt"><span>Security</span></a>
+      <a href="addproduct.html" class="icon solid fa-plus"><span>Add Product</span></a>
+    </nav>
+
+    <!-- Main -->
+    <div id="main">
+      <!-- Home -->
+      <article id="home" class="panel intro">
+        <!-- Top Banner -->
+        <div class="top-banner">
+          <h1 class="main-title">Welcome to the Smart Retail System</h1>
+          <p class="intro-text">
+            RSAS2 brings together automation, analytics, and security for the next
+            generation of retail management.
+          </p>
+          <div class="banner-actions">
+            <a href="login.html" class="button primary big-button">Login Now</a>
+            <a href="#services" class="button secondary big-button learn-more-btn">Learn More</a>
+          </div>
+        </div>
+
+        <!-- Services Section -->
+        <section id="services" class="services-section">
+          <h2 class="section-title">Our Core Services</h2>
+
+          <div class="service-row fade-in">
+            <div class="service-icon">
+              <img src="images/Smart-Pricing.png" alt="Smart Pricing" />
+            </div>
+            <div class="service-details">
+              <h3>Smart Pricing</h3>
+              <p>Automatically adjust product prices based on demand, area, and market trends.</p>
+              <a href="smartpricing.html" class="button primary">Go to Service</a>
+            </div>
+          </div>
+
+          <div class="service-row fade-in">
+            <div class="service-icon">
+              <img src="images/Inventory-Refill.png" alt="Inventory Refill" />
+            </div>
+            <div class="service-details">
+              <h3>Inventory Refill</h3>
+              <p>Monitor stock levels, receive alerts, and automate restocking processes.</p>
+              <a href="inventory.html" class="button primary">Go to Service</a>
+            </div>
+          </div>
+
+          <div class="service-row fade-in">
+            <div class="service-icon">
+              <img src="images/Sales-Heatmap.png" alt="Sales Heatmap" />
+            </div>
+            <div class="service-details">
+              <h3>Sales Heatmap</h3>
+              <p>Analyze weekly sales performance and get smart relocation suggestions.</p>
+              <a href="salesheatmap.html" class="button primary">Go to Service</a>
+            </div>
+          </div>
+
+          <div class="service-row fade-in">
+            <div class="service-icon">
+              <img src="images/Security-Service.png" alt="Security Monitor" />
+            </div>
+            <div class="service-details">
+              <h3>Security Monitor</h3>
+              <p>Track suspicious activities and receive actionable security recommendations.</p>
+              <a href="security.html" class="button primary">Go to Service</a>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick Stats -->
+        <section class="quick-stats">
+          <h2>System Highlights</h2>
+          <div class="stats-grid">
+            <div class="stat-card"><h3>+150</h3><p>Products managed</p></div>
+            <div class="stat-card"><h3>+10%</h3><p>Average sales growth</p></div>
+            <div class="stat-card"><h3>24/7</h3><p>Automated monitoring</p></div>
+            <div class="stat-card"><h3>99.9%</h3><p>System uptime</p></div>
+          </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="cta-section">
+          <h2>Ready to take control of your retail operations?</h2>
+          <a href="login.html" class="button primary big-button">Start Now</a>
+        </section>
+      </article>
+
+      <!-- Learn More Scroll Script -->
+      <script>
+        document.querySelector('.learn-more-btn')?.addEventListener('click', function(e) {
+          e.preventDefault();
+          document.querySelector('#services')?.scrollIntoView({ behavior: 'smooth' });
+        });
+      </script>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer">
+      <div class="footer-content">
+        <div class="footer-about">
+          <h4>RSAS2</h4>
+          <p>Smart Retail Automation System for advanced pricing, inventory, sales, and security monitoring.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="home.html">Home</a></li>
+            <li><a href="smartpricing.html">Smart Pricing</a></li>
+            <li><a href="inventory.html">Inventory Refill</a></li>
+            <li><a href="salesheatmap.html">Sales Heatmap</a></li>
+            <li><a href="security.html">Security Monitor</a></li>
+          </ul>
+        </div>
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <ul>
+            <li>Email: support@rsas2.com</li>
+            <li>Phone: +353 086 456</li>
+            <li>Address: 123 Retail Street, Tech City</li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>&copy; RSAS2. All rights reserved.</p>
+        <p>Design: ALex</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/js/browser.min.js"></script>
+  <script src="assets/js/breakpoints.min.js"></script>
+  <script src="assets/js/util.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
 </html>

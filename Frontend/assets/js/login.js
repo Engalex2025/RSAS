@@ -1,7 +1,7 @@
 // assets/js/login.js
 // Handles login form submission and stores JWT.
 
-const LOGIN_ENDPOINT = "/api/auth/login"; 
+const LOGIN_ENDPOINT = "http://localhost:8080/api/auth/login"; 
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       saveToken(token);
       resultBox.textContent = "Login successful. Redirecting...";
-      setTimeout(() => { window.location.href = "home.html"; }, 700);
+      setTimeout(() => { window.location.href = "index.html"; }, 700);
     } catch (err) {
       console.error(err);
       resultBox.textContent = "Network error. Try again.";

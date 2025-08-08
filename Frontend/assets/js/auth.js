@@ -26,11 +26,6 @@ function requireAuth() {
   }
 }
 
-function redirectIfAuthenticated() {
-  if (isAuthenticated()) {
-    window.location.href = "home.html";
-  }
-}
 
 function authHeaders(extra = {}) {
   const t = getToken();

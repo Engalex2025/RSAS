@@ -2,35 +2,37 @@
 // Central UI logic for all pages. Safe-guards for missing elements.
 // All API calls include Authorization using authHeaders() from auth.js.
 
-// -------------------------------
-// API endpoints (adjust if needed)
-// -------------------------------
+const API_BASE = "http://localhost:8080";
+
 const API = {
   pricing: {
-    getPrice: (productId) => `/api/pricing/price?productId=${encodeURIComponent(productId)}`,
-    autoAdjust: `/api/pricing/auto-adjust`,
-    historyAll: `/api/pricing/history`,
-    historyByProduct: (productId) => `/api/pricing/history/${encodeURIComponent(productId)}`
-    // If your backend uses query param instead of path:
-    // historyByProduct: (productId) => `/api/pricing/history?productId=${encodeURIComponent(productId)}`
+    getPrice: (productId) => `${API_BASE}/api/pricing/price?productId=${encodeURIComponent(productId)}`,
+    autoAdjust: `${API_BASE}/api/pricing/auto-adjust`,
+    historyAll: `${API_BASE}/api/pricing/history`,
+    // If your backend uses query param instead of path, swap the line below accordingly.
+    historyByProduct: (productId) => `${API_BASE}/api/pricing/history/${encodeURIComponent(productId)}`
   },
   inventory: {
-    manualRefill: `/api/inventory/refill`, // expects { productId }
-    restockHistory: (productId) => `/api/inventory/restocks?productId=${encodeURIComponent(productId)}`,
-    recentRestocks: `/api/inventory/restocks/recent`,
-    notifyPurchasing: `/api/inventory/purchasing/notifications`,
-    exportCsv: `/api/inventory/export/csv`
+    // Backend expects @RequestParam productId (no JSON body)
+    manualRefill: `${API_BASE}/api/inventory/manual-refill`,
+    requestReplenishment: (productId, quantity) =>
+      `${API_BASE}/api/inventory/request-replenishment?productId=${encodeURIComponent(productId)}&quantity=${encodeURIComponent(quantity)}`,
+    restockHistory: (productId) =>
+      `${API_BASE}/api/inventory/restock-history?productId=${encodeURIComponent(productId)}`,
+    recentRestocks: `${API_BASE}/api/inventory/recent-restocks`,
+    notifyPurchasing: `${API_BASE}/api/inventory/notify-purchasing`,
+    scheduledAlerts: `${API_BASE}/api/inventory/scheduled-alerts`
   },
   sales: {
-    heatmap: (week) => `/api/sales/heatmap?week=${encodeURIComponent(week)}`,
-    report4WeekAverage: `/api/sales/heatmap/report/4-week-average` // returns .docx
+    heatmap: (week) => `${API_BASE}/api/sales/heatmap?week=${encodeURIComponent(week)}`,
+    report4WeekAverage: `${API_BASE}/api/sales/heatmap/report/4-week-average`
   },
   security: {
-    alerts: `/api/security/alerts`,
-    summary: `/api/security/summary`
+    alerts: `${API_BASE}/api/security/alerts`,
+    summary: `${API_BASE}/api/security/summary`
   },
   products: {
-    add: `/api/products`
+    add: `${API_BASE}/api/products`
   }
 };
 
@@ -48,9 +50,9 @@ function setHTML(el, html) {
 function setPreJSON(el, data) {
   if (!el) return;
   const json = (typeof data === "string") ? data : JSON.stringify(data, null, 2);
-  el.innerHTML = ""; // clear
+  el.innerHTML = "";
   const pre = document.createElement("pre");
-  pre.textContent = json; // safe
+  pre.textContent = json;
   el.appendChild(pre);
 }
 
@@ -166,17 +168,18 @@ function downloadBlob(blob, filename) {
       const pid = manualInput.value.trim();
       if (!pid) return setHTML(manualResult, "Please provide a Product ID.");
       setHTML(manualResult, "Processing...");
-      const resp = await fetch(API.inventory.manualRefill, {
+
+      const url = `${API.inventory.manualRefill}?productId=${encodeURIComponent(pid)}`;
+
+      const resp = await fetch(url, {
         method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({ productId: pid })
+        headers: authHeaders()
       });
+      const text = await resp.text();
       if (!resp.ok) {
-        const err = await resp.text();
-        return setPreJSON(manualResult, err || "Request failed.");
+        return setPreJSON(manualResult, text || "Request failed.");
       }
-      const data = await resp.json();
-      setPreJSON(manualResult, data);
+      setPreJSON(manualResult, text);
     });
   }
 
@@ -215,7 +218,6 @@ function downloadBlob(blob, filename) {
 
   const notifyResult = $("#notifyPurchasingResult");
   if (notifyResult) {
-    // Auto-load list when inventory page opens
     (async () => {
       setHTML(notifyResult, "Loading notifications...");
       const resp = await fetch(API.inventory.notifyPurchasing, { headers: authHeaders() });
@@ -227,23 +229,16 @@ function downloadBlob(blob, filename) {
       setPreJSON(notifyResult, data);
     })();
   }
-
-  // Export CSV function (called by onclick="exportInventoryCSV()")
-  if (typeof window !== "undefined") {
-    window.exportInventoryCSV = async function () {
-      const resp = await fetch(API.inventory.exportCsv, { headers: authHeaders() });
-      if (!resp.ok) {
-        const msg = await resp.text();
-        return alert(msg || "Export failed."); // ok to use alert here as a quick feedback
-      }
-      const blob = await resp.blob();
-      downloadBlob(blob, "inventory.csv");
-    };
-  }
 })();
 
 // -------------------------------
 // SALES HEATMAP PAGE
+// -------------------------------
+// -------------------------------
+// SALES HEATMAP PAGE (robust)
+// -------------------------------
+// -------------------------------
+// SALES HEATMAP PAGE (robust + rAF + auto submit)
 // -------------------------------
 (function initSalesHeatmap() {
   const form = $("#heatmapForm");
@@ -255,68 +250,87 @@ function downloadBlob(blob, filename) {
 
   let chartRef = null;
 
+  // Report download
   if (btnReport) {
     btnReport.addEventListener("click", async () => {
       btnReport.textContent = "Preparing report...";
-      const resp = await fetch(API.sales.report4WeekAverage, { headers: authHeaders() });
-      btnReport.textContent = "Download 4-Week Average Report (.docx)";
-      if (!resp.ok) {
-        const err = await resp.text();
-        return setPreJSON(outHeatmap || outReloc, err || "Report download failed.");
+      try {
+        const resp = await fetch(API.sales.report4WeekAverage, { headers: authHeaders() });
+        btnReport.textContent = "Download 4-Week Average Report (.docx)";
+        if (!resp.ok) {
+          const err = await resp.text();
+          return setPreJSON(outHeatmap || outReloc, err || "Report download failed.");
+        }
+        const blob = await resp.blob();
+        downloadBlob(blob, "Sales_Heatmap_Report_4_Week_Average.docx");
+      } catch {
+        btnReport.textContent = "Download 4-Week Average Report (.docx)";
+        setPreJSON(outHeatmap || outReloc, "Network error while downloading report.");
       }
-      const blob = await resp.blob();
-      downloadBlob(blob, "Sales_Heatmap_Report_4_Week_Average.docx");
     });
   }
 
-  if (form && weekSel) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const week = weekSel.value;
-      if (outHeatmap) setHTML(outHeatmap, "Loading heatmap...");
-      if (outReloc) setHTML(outReloc, "");
+  if (!form || !weekSel) return;
 
-      const resp = await fetch(API.sales.heatmap(week), { headers: authHeaders() });
-      if (!resp.ok) {
-        const err = await resp.text();
-        if (outHeatmap) setPreJSON(outHeatmap, err || "Request failed.");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const week = weekSel.value;
+
+    if (outHeatmap) setHTML(outHeatmap, "Loading heatmap...");
+    if (outReloc) setHTML(outReloc, "Loading relocation suggestions...");
+
+    try {
+      const r = await fetch(API.sales.heatmap(week), { headers: authHeaders() });
+      const txt = await r.text();
+      let data = null;
+      try { data = JSON.parse(txt); } catch {}
+
+      if (!r.ok) {
+        if (outHeatmap) setPreJSON(outHeatmap, txt || "Heatmap endpoint failed.");
         return;
       }
-      const data = await resp.json();
 
-      // Expecting structure like:
-      // { heatmap: [{ areaCode, totalSales, topCategories }...],
-      //   relocationSuggestions: [{ productId, productName, fromArea, toArea, reason }...] }
-      if (outHeatmap) setPreJSON(outHeatmap, data.heatmap || data);
-      if (outReloc) setPreJSON(outReloc, data.relocationSuggestions || []);
+      const heat = Array.isArray(data) ? data : (data?.heatmap ?? []);
+      const reloc = Array.isArray(data?.relocationSuggestions) ? data.relocationSuggestions : [];
 
-      // Draw chart if Chart is available and canvas exists
-      if (chartCanvas && typeof Chart !== "undefined" && data.heatmap && Array.isArray(data.heatmap)) {
-        const labels = data.heatmap.map(x => x.areaCode || x.area || "Area");
-        const values = data.heatmap.map(x => Number(x.totalSales || 0));
-
-        // Destroy previous chart if needed
-        if (chartRef && typeof chartRef.destroy === "function") chartRef.destroy();
-
-        // One chart per page load
-        chartRef = new Chart(chartCanvas.getContext("2d"), {
-          type: "bar",
-          data: {
-            labels,
-            datasets: [{
-              label: "Total Sales",
-              data: values
-              // No specific colors or styles as requested
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false
-          }
-        });
+      if (outHeatmap) setPreJSON(outHeatmap, heat.length ? heat : (data ?? txt));
+      if (outReloc) {
+        if (reloc.length) setPreJSON(outReloc, reloc);
+        else setHTML(outReloc, "<em>No relocation suggestions for this week.</em>");
       }
-    });
-  }
+
+      // Draw chart (wait one frame so CSS/layout settle)
+      if (!chartCanvas) return;
+      if (typeof Chart === "undefined") { console.warn("Chart.js not found on page."); return; }
+      if (!Array.isArray(heat) || !heat.length) { console.warn("No heatmap array to plot."); return; }
+
+      await new Promise(requestAnimationFrame); // <-- key trick
+      const rect = chartCanvas.getBoundingClientRect();
+      console.log("Canvas size before draw:", rect.width, rect.height);
+
+      if (chartRef && typeof chartRef.destroy === "function") chartRef.destroy();
+
+      const ctx = chartCanvas.getContext("2d");
+      chartRef = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: heat.map(x => x.areaCode || x.area || "Area"),
+          datasets: [{ label: "Total Sales", data: heat.map(x => Number(x.totalSales ?? x.sales ?? 0)) }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      console.log("Heatmap chart drawn with", heat.length, "bars.");
+    } catch (e2) {
+      if (outHeatmap) setPreJSON(outHeatmap, "Network error.");
+      console.error(e2);
+    }
+  });
+
+  // Auto-submit on load so you see the chart without clicking
+  document.addEventListener("DOMContentLoaded", () => {
+    form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+  });
 })();
 
 // -------------------------------
@@ -375,7 +389,6 @@ function downloadBlob(blob, filename) {
         area: $("#newArea")?.value?.trim() || null
       };
 
-      // Basic validation
       if (!payload.productId || !payload.productName) {
         return setHTML(resultBox, "Product ID and Product Name are required.");
       }
@@ -395,4 +408,25 @@ function downloadBlob(blob, filename) {
       form.reset();
     });
   }
+})();
+
+// -------------------------------
+// Active nav based on current page
+// -------------------------------
+(function setActiveNav() {
+  const links = document.querySelectorAll('#nav a');
+  if (!links.length) return;
+
+  const path = (location.pathname.split('/').pop() || '').toLowerCase();
+  const current = (!path || path === '/' || path === 'index.html') ? 'home.html' : path;
+
+  links.forEach(a => {
+    const href = (a.getAttribute('href') || '').split('/').pop().toLowerCase();
+    if (href === current) {
+      a.classList.add('active');
+      a.classList.add('active-locked');
+    } else {
+      a.classList.remove('active', 'active-locked');
+    }
+  });
 })();
